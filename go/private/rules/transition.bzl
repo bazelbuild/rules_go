@@ -66,7 +66,7 @@ def _go_transition_impl(settings, attr):
     #
     # NOTE(bazelbuild/bazel#11409): Calling fail here for invalid combinations
     # of flags reports an error but does not stop the build.
-    # In any case, get_mode should mainly be responsible for reporting
+    # In any case, validate_mode should mainly be responsible for reporting
     # invalid modes, since it also takes --features flags into account.
 
     original_settings = settings

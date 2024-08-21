@@ -13,6 +13,10 @@
 # limitations under the License.
 
 load(
+    "@bazel_skylib//lib:structs.bzl",
+    "structs",
+)
+load(
     "@bazel_skylib//rules:common_settings.bzl",
     "BuildSettingInfo",
 )
@@ -53,8 +57,9 @@ load(
 )
 load(
     ":mode.bzl",
-    "get_mode",
+    "LINKMODE_NORMAL",
     "installsuffix",
+    "validate_mode",
 )
 load(
     ":providers.bzl",
@@ -375,6 +380,24 @@ def get_nogo(go):
     else:
         return None
 
+default_go_config_info = GoConfigInfo(
+    static = False,
+    race = False,
+    msan = False,
+    pure = False,
+    strip = False,
+    debug = False,
+    linkmode = LINKMODE_NORMAL,
+    gc_linkopts = [],
+    tags = [],
+    stamp = False,
+    cover_format = None,
+    gc_goopts = [],
+    amd64 = None,
+    arm = None,
+    pgoprofile = None,
+)
+
 def go_context(
         ctx,
         attr = None,
@@ -383,7 +406,9 @@ def go_context(
         importmap = None,
         embed = None,
         importpath_aliases = None,
-        go_context_data = None):
+        go_context_data = None,
+        goos = "auto",
+        goarch = "auto"):
     """Returns an API used to build Go code.
 
     See /go/toolchains.rst#go-context
@@ -419,7 +444,21 @@ def go_context(
         stdlib = go_context_data[GoStdLib]
         go_context_info = go_context_data[GoContextInfo]
 
-    mode = get_mode(ctx, toolchain, cgo_context_info, go_config_info)
+    if goos == "auto" and goarch == "auto" and cgo_context_info:
+        # Fast-path to reuse the GoConfigInfo as-is
+        mode = go_config_info
+    else:
+        if go_config_info == None:
+            go_config_info = default_go_config_info
+        mode_kwargs = structs.to_dict(go_config_info)
+        mode_kwargs["goos"] = toolchain.default_goos if goos == "auto" else goos
+        mode_kwargs["goarch"] = toolchain.default_goarch if goarch == "auto" else goarch
+        if not cgo_context_info:
+            if getattr(ctx.attr, "pure", None) == "off":
+                fail("{} has pure explicitly set to off, but no C++ toolchain could be found for its platform".format(ctx.label))
+            mode_kwargs["pure"] = True
+        mode = struct(**mode_kwargs)
+        validate_mode(mode)
 
     if stdlib:
         goroot = stdlib.root_file.dirname
@@ -879,7 +918,11 @@ def _go_config_impl(ctx):
     if msan:
         tags.append("msan")
 
-    return [GoConfigInfo(
+    toolchain = ctx.toolchains[GO_TOOLCHAIN]
+
+    go_config_info = GoConfigInfo(
+        goos = toolchain.default_goos,
+        goarch = toolchain.default_goarch,
         static = ctx.attr.static[BuildSettingInfo].value,
         race = race,
         msan = msan,
@@ -895,7 +938,10 @@ def _go_config_impl(ctx):
         amd64 = ctx.attr.amd64,
         arm = ctx.attr.arm,
         pgoprofile = pgoprofile,
-    )]
+    )
+    validate_mode(go_config_info)
+
+    return [go_config_info]
 
 go_config = rule(
     implementation = _go_config_impl,
@@ -953,6 +999,7 @@ go_config = rule(
     doc = """Collects information about build settings in the current
     configuration. Rules may depend on this instead of depending on all
     the build settings directly.""",
+    toolchains = [GO_TOOLCHAIN],
 )
 
 def _expand_opts(go, attribute_name, opts):

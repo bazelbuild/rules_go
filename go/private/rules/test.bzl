@@ -63,6 +63,8 @@ def _go_test_impl(ctx):
         embed = ctx.attr.embed,
         # It's a list because it is transitioned.
         go_context_data = ctx.attr._go_context_data[0],
+        goos = ctx.attr.goos,
+        goarch = ctx.attr.goarch,
     )
 
     # Compile the library to test with internal white box tests

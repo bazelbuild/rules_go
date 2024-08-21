@@ -122,9 +122,11 @@ def _go_binary_impl(ctx):
         embed = ctx.attr.embed,
         # It's a list because it is transitioned.
         go_context_data = ctx.attr._go_context_data[0],
+        goos = ctx.attr.goos,
+        goarch = ctx.attr.goarch,
     )
 
-    is_main = go.mode.link not in (LINKMODE_SHARED, LINKMODE_PLUGIN)
+    is_main = go.mode.linkmode not in (LINKMODE_SHARED, LINKMODE_PLUGIN)
     library = go.new_library(go, importable = False, is_main = is_main)
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     name = ctx.attr.basename
@@ -156,7 +158,7 @@ def _go_binary_impl(ctx):
         ),
     ]
 
-    if go.mode.link in LINKMODES_EXECUTABLE:
+    if go.mode.linkmode in LINKMODES_EXECUTABLE:
         env = {}
         for k, v in ctx.attr.env.items():
             env[k] = ctx.expand_location(v, ctx.attr.data)
@@ -182,7 +184,7 @@ def _go_binary_impl(ctx):
         ))
 
     # If the binary's linkmode is c-archive or c-shared, expose CcInfo
-    if go.cgo_tools and go.mode.link in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
+    if go.cgo_tools and go.mode.linkmode in (LINKMODE_C_ARCHIVE, LINKMODE_C_SHARED):
         cc_import_kwargs = {
             "linkopts": {
                 "darwin": [],
@@ -198,9 +200,9 @@ def _go_binary_impl(ctx):
                 target_file = cgo_exports[0],
             )
             cc_import_kwargs["hdrs"] = depset([header])
-        if go.mode.link == LINKMODE_C_SHARED:
+        if go.mode.linkmode == LINKMODE_C_SHARED:
             cc_import_kwargs["dynamic_library"] = executable
-        elif go.mode.link == LINKMODE_C_ARCHIVE:
+        elif go.mode.linkmode == LINKMODE_C_ARCHIVE:
             cc_import_kwargs["static_library"] = executable
             cc_import_kwargs["alwayslink"] = True
 

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load(":providers.bzl", "GoConfigInfo")
-
 # Modes are documented in go/modes.rst#compilation-modes
 
 LINKMODE_NORMAL = "normal"
@@ -54,76 +52,22 @@ def mode_string(mode):
         result.append("debug")
     if mode.strip:
         result.append("stripped")
-    if not result or not mode.link == LINKMODE_NORMAL:
-        result.append(mode.link)
+    if not result or not mode.linkmode == LINKMODE_NORMAL:
+        result.append(mode.linkmode)
     if mode.gc_goopts:
         result.extend(mode.gc_goopts)
     return "_".join(result)
 
-default_go_config_info = GoConfigInfo(
-    static = False,
-    race = False,
-    msan = False,
-    pure = False,
-    strip = False,
-    debug = False,
-    linkmode = LINKMODE_NORMAL,
-    gc_linkopts = [],
-    tags = [],
-    stamp = False,
-    cover_format = None,
-    gc_goopts = [],
-    amd64 = None,
-    arm = None,
-    pgoprofile = None,
-)
-
-def get_mode(ctx, go_toolchain, cgo_context_info, go_config_info):
-    if go_config_info == None:
-        go_config_info = default_go_config_info
-
-    if not cgo_context_info:
-        if getattr(ctx.attr, "pure", None) == "off":
-            fail("{} has pure explicitly set to off, but no C++ toolchain could be found for its platform".format(ctx.label))
-        pure = True
-    else:
-        pure = go_config_info.pure
-
-    race = go_config_info.race
-    msan = go_config_info.msan
-    linkmode = go_config_info.linkmode
-    goos = go_toolchain.default_goos if getattr(ctx.attr, "goos", "auto") == "auto" else ctx.attr.goos
-    goarch = go_toolchain.default_goarch if getattr(ctx.attr, "goarch", "auto") == "auto" else ctx.attr.goarch
-
+def validate_mode(mode):
     # TODO(jayconrod): check for more invalid and contradictory settings.
-    if pure:
-        if race:
+    if mode.pure:
+        if mode.race:
             fail("race instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
-        if msan:
+        if mode.msan:
             fail("msan instrumentation can't be enabled when cgo is disabled. Check that pure is not set to \"off\" and a C/C++ toolchain is configured.")
-        if linkmode in LINKMODES_REQUIRING_EXTERNAL_LINKING:
+        if mode.linkmode in LINKMODES_REQUIRING_EXTERNAL_LINKING:
             fail(("linkmode '{}' can't be used when cgo is disabled. Check that pure is not set to \"off\" and that a C/C++ toolchain is configured for " +
-                  "your current platform. If you defined a custom platform, make sure that it has the @io_bazel_rules_go//go/toolchain:cgo_on constraint value.").format(linkmode))
-
-    return struct(
-        static = go_config_info.static,
-        race = race,
-        msan = msan,
-        pure = pure,
-        link = linkmode,
-        gc_linkopts = go_config_info.gc_linkopts,
-        strip = go_config_info.strip,
-        stamp = go_config_info.stamp,
-        debug = go_config_info.debug,
-        goos = goos,
-        goarch = goarch,
-        tags = go_config_info.tags,
-        cover_format = go_config_info.cover_format,
-        amd64 = go_config_info.amd64,
-        arm = go_config_info.arm,
-        gc_goopts = go_config_info.gc_goopts,
-        pgoprofile = go_config_info.pgoprofile,
-    )
+                  "your current platform. If you defined a custom platform, make sure that it has the @io_bazel_rules_go//go/toolchain:cgo_on constraint value.").format(mode.linkmode))
 
 def installsuffix(mode):
     s = mode.goos + "_" + mode.goarch
@@ -185,28 +129,31 @@ _LINK_PIE_PLATFORMS = {
     "freebsd/amd64": None,
 }
 
+def _platform(mode):
+    return mode.goos + "/" + mode.goarch
+
 def link_mode_arg(mode):
     # based on buildModeInit in cmd/go/internal/work/init.go
-    platform = mode.goos + "/" + mode.goarch
-    if mode.link == LINKMODE_C_ARCHIVE:
+    if mode.linkmode == LINKMODE_C_ARCHIVE:
+        platform = _platform(mode)
         if (platform in _LINK_C_ARCHIVE_PLATFORMS or
             mode.goos in _LINK_C_ARCHIVE_GOOS and platform != "linux/ppc64"):
             return "-shared"
-    elif mode.link == LINKMODE_C_SHARED:
+    elif mode.linkmode == LINKMODE_C_SHARED:
         if mode.goos in _LINK_C_SHARED_GOOS:
             return "-shared"
-    elif mode.link == LINKMODE_PLUGIN:
-        if platform in _LINK_PLUGIN_PLATFORMS:
+    elif mode.linkmode == LINKMODE_PLUGIN:
+        if _platform(mode) in _LINK_PLUGIN_PLATFORMS:
             return "-dynlink"
-    elif mode.link == LINKMODE_PIE:
-        if platform in _LINK_PIE_PLATFORMS:
+    elif mode.linkmode == LINKMODE_PIE:
+        if _platform(mode) in _LINK_PIE_PLATFORMS:
             return "-shared"
     return None
 
 def extldflags_from_cc_toolchain(go):
     if not go.cgo_tools:
         return []
-    elif go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
+    elif go.mode.linkmode in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED):
         return go.cgo_tools.ld_dynamic_lib_options
     else:
         # NOTE: in c-archive mode, -extldflags are ignored by the linker.
@@ -217,9 +164,9 @@ def extldflags_from_cc_toolchain(go):
 def extld_from_cc_toolchain(go):
     if not go.cgo_tools:
         return []
-    elif go.mode.link in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
+    elif go.mode.linkmode in (LINKMODE_SHARED, LINKMODE_PLUGIN, LINKMODE_C_SHARED, LINKMODE_PIE):
         return ["-extld", go.cgo_tools.ld_dynamic_lib_path]
-    elif go.mode.link == LINKMODE_C_ARCHIVE:
+    elif go.mode.linkmode == LINKMODE_C_ARCHIVE:
         if go.mode.goos in ["darwin", "ios"]:
             # TODO(jayconrod): on macOS, set -extar. At this time, wrapped_ar is
             # a bash script without a shebang line, so we can't execute it. We

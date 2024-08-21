@@ -45,7 +45,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
 
     testfilter = getattr(source.library, "testfilter", None)
     pre_ext = ""
-    if go.mode.link == LINKMODE_C_ARCHIVE:
+    if go.mode.linkmode == LINKMODE_C_ARCHIVE:
         pre_ext = "_"  # avoid collision with go_binary output file with .a extension
     elif testfilter == "exclude":
         pre_ext = ".internal"
@@ -96,7 +96,7 @@ def emit_archive(go, source = None, _recompile_suffix = "", recompile_internal_d
             cxxopts = cxxopts,
             clinkopts = clinkopts,
         )
-        if go.mode.link in (LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE):
+        if go.mode.linkmode in (LINKMODE_C_SHARED, LINKMODE_C_ARCHIVE):
             out_cgo_export_h = go.declare_file(go, path = "_cgo_install.h")
         cgo_deps = cgo.deps
         runfiles = runfiles.merge(cgo.runfiles)

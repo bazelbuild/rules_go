@@ -81,7 +81,7 @@ def emit_link(
         tool_args.add_all(extld)
         if extld and (go.mode.static or
                       go.mode.race or
-                      go.mode.link != LINKMODE_NORMAL or
+                      go.mode.linkmode != LINKMODE_NORMAL or
                       go.mode.goos == "windows" and go.mode.msan):
             # Force external linking for the following conditions:
             # * Mode is static but not pure: -static must be passed to the C
@@ -101,9 +101,9 @@ def emit_link(
 
     if go.mode.static:
         extldflags.append("-static")
-    if go.mode.link != LINKMODE_NORMAL:
-        builder_args.add("-buildmode", go.mode.link)
-    if go.mode.link == LINKMODE_PLUGIN:
+    if go.mode.linkmode != LINKMODE_NORMAL:
+        builder_args.add("-buildmode", go.mode.linkmode)
+    if go.mode.linkmode == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
     # TODO(zbarsky): Bazel versions older than 7.2.0 do not properly deduplicate this dep

@@ -67,8 +67,18 @@ def get_imports(attr, importpath):
     return depset(direct = direct.keys(), transitive = transitive)
 
 def _go_proto_aspect_impl(_target, ctx):
-    go = go_context(ctx, ctx.rule.attr, include_deprecated_properties = False)
-    imports = get_imports(ctx.rule.attr, go.importpath)
+    attr = ctx.rule.attr
+    go = go_context(
+        ctx,
+        attr,
+        include_deprecated_properties = False,
+        importpath = attr.importpath,
+        importmap = attr.importmap,
+        importpath_aliases = attr.importpath_aliases,
+        embed = attr.embed,
+        go_context_data = attr._go_context_data,
+    )
+    imports = get_imports(attr, go.importpath)
     return [GoProtoImports(imports = imports)]
 
 _go_proto_aspect = aspect(
@@ -90,7 +100,15 @@ def _proto_library_to_source(_go, attr, source, merge):
             merge(source, compiler[GoSource])
 
 def _go_proto_library_impl(ctx):
-    go = go_context(ctx, include_deprecated_properties = False)
+    go = go_context(
+        ctx,
+        include_deprecated_properties = False,
+        importpath = ctx.attr.importpath,
+        importmap = ctx.attr.importmap,
+        importpath_aliases = ctx.attr.importpath_aliases,
+        embed = ctx.attr.embed,
+        go_context_data = ctx.attr._go_context_data,
+    )
     if ctx.attr.compiler:
         #TODO: print("DEPRECATED: compiler attribute on {}, use compilers instead".format(ctx.label))
         compilers = [ctx.attr.compiler]
