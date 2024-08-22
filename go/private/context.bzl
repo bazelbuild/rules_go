@@ -503,6 +503,14 @@ def go_context(ctx, attr = None):
         #
         # See https://go.dev/doc/toolchain for more info.
         "GOTOOLCHAIN": "local",
+
+        # NOTE(#4049): Since Go 1.23.0, os.Readlink (and consequently
+        # filepath.EvalSymlinks) stopped treating Windows mount points and
+        # reparse points (junctions) as symbolic links. Bazel uses junctions
+        # when constructing exec roots, and we use filepath.EvalSymlinks in
+        # GoStdlib, so this broke us. Setting GODEBUG=winsymlink=0 restores
+        # the old behavior.
+        "GODEBUG": "winsymlink=0",
     }
 
     # Path mapping can't map the values of environment variables, so we pass GOROOT to the action
