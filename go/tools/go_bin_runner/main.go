@@ -30,6 +30,12 @@ type Config struct {
 }
 
 func main() {
+	// Force usage of the Bazel-configured Go SDK.
+	err := os.Setenv("GOTOOLCHAIN", "local")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	goBin, err := runfiles.Rlocation(GoBinRlocationPath)
 	if err != nil {
 		log.Fatal(err)
