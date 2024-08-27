@@ -46,7 +46,7 @@ def _embedroot_arg(src):
 def _embedlookupdir_arg(src):
     root_relative = src.dirname[len(src.root.path):]
     if root_relative.startswith("/"):
-        root_relative = root_relative[len("/"):]
+        root_relative = root_relative[1:]
     return root_relative
 
 def emit_compilepkg(
@@ -88,6 +88,9 @@ def emit_compilepkg(
     if bool(nogo) != bool(out_nogo_validation):
         fail("nogo must be specified if and only if out_nogo_validation is specified")
 
+    if cover and go.coverdata:
+        archives = archives + [go.coverdata]
+
     sdk = go.sdk
     inputs_direct = (sources + embedsrcs + [sdk.package_list] +
                      [archive.data.export_file for archive in archives])
@@ -111,12 +114,9 @@ def emit_compilepkg(
         uniquify = True,
         expand_directories = False,
     )
+
     cover_mode = None
-    cover_archive = None
     if cover and go.coverdata:
-        cover_archive = go.coverdata
-        inputs_direct.append(cover_archive.data.export_file)
-        args.add("-arc", _archive(cover_archive))
         if go.mode.race:
             cover_mode = "atomic"
         else:
@@ -124,6 +124,7 @@ def emit_compilepkg(
         args.add("-cover_mode", cover_mode)
         args.add("-cover_format", go.mode.cover_format)
         args.add_all(cover, before_each = "-cover")
+
     args.add_all(archives, before_each = "-arc", map_each = _archive)
     if recompile_internal_deps:
         args.add_all(recompile_internal_deps, before_each = "-recompile_internal_deps")
@@ -212,7 +213,7 @@ def emit_compilepkg(
             sources = sources,
             importpath = importpath,
             importmap = importmap,
-            archives = archives + ([cover_archive] if cover_archive else []),
+            archives = archives,
             recompile_internal_deps = recompile_internal_deps,
             cover_mode = cover_mode,
             cgo_go_srcs = cgo_go_srcs_for_nogo,
