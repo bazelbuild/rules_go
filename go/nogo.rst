@@ -25,7 +25,7 @@
 
 
 ``nogo`` is a tool that analyzes the source code of Go programs. It runs
-in an action after the Go compiler in the Bazel Go rules and rejects source that
+in an action after the Go compiler in the Bazel Go rules and rejects sources that
 contain disallowed coding patterns from the configured analyzers.
 
 ``nogo`` is a powerful tool for preventing bugs and code anti-patterns early
