@@ -24,14 +24,9 @@
 .. footer:: The ``nogo`` logo was derived from the Go gopher, which was designed by Renee French. (http://reneefrench.blogspot.com/) The design is licensed under the Creative Commons 3.0 Attributions license. Read this article for more details: http://blog.golang.org/gopher
 
 
-**WARNING**: This functionality is experimental, so its API might change.
-Please do not rely on it for production use, but feel free to use it and file
-issues.
-
 ``nogo`` is a tool that analyzes the source code of Go programs. It runs
-alongside the Go compiler in the Bazel Go rules and rejects programs that
-contain disallowed coding patterns. In addition, ``nogo`` may report
-compiler-like errors.
+in an action after the Go compiler in the Bazel Go rules and rejects source that
+contain disallowed coding patterns from the configured analyzers.
 
 ``nogo`` is a powerful tool for preventing bugs and code anti-patterns early
 in the development process. It may be used to run the same analyses as `vet`_,
