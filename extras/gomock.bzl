@@ -156,6 +156,26 @@ _gomock_source = rule(
             doc = "Generate type-safe 'Return', 'Do', 'DoAndReturn' functions.",
             mandatory = False,
         ),
+        "write_command_comment": attr.bool(
+            doc = "Writes the command used as a comment if true.",
+            mandatory = False,
+            default = True,
+        ),
+        "write_package_comment": attr.bool(
+            doc = "Writes package documentation comment (godoc) if true.",
+            mandatory = False,
+            default = True,
+        ),
+        "write_source_comment": attr.bool(
+            doc = "Writes original file (source mode) or interface names (reflect mode) comment if true.",
+            mandatory = False,
+            default = True,
+        ),
+        "write_generate_directive": attr.bool(
+            doc = "Add //go:generate directive to regenerate the mock",
+            mandatory = False,
+            default = False,
+        ),
         "mockgen_tool": attr.label(
             doc = "The mockgen tool to run",
             default = _MOCKGEN_TOOL,
@@ -171,7 +191,7 @@ _gomock_source = rule(
     toolchains = [GO_TOOLCHAIN],
 )
 
-def gomock(name, out, library = None, source_importpath = "", source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, typed = False, **kwargs):
+def gomock(name, out, library = None, source_importpath = "", source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, typed = False, write_command_comment = True, write_package_comment = True, write_source_comment = True, write_generate_directive = False, **kwargs):
     """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
     If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
@@ -191,6 +211,10 @@ def gomock(name, out, library = None, source_importpath = "", source = None, int
         copyright_file: optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.
         mock_names: dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.
         typed: generate type-safe 'Return', 'Do', 'DoAndReturn' functions. See [mockgen's -typed](https://github.com/uber-go/mock#flags) for more information.
+        write_command_comment: writes the command used as a comment if true.
+        write_package_comment: writes package documentation comment (godoc) if true.
+        write_source_comment: writes original file (source mode) or interface names (reflect mode) comment if true.
+        write_generate_directive: Add //go:generate directive to regenerate the mock.
         kwargs: [common attributes](https://bazel.build/reference/be/common-definitions#common-attributes) to all Bazel rules.
     """
     if source:
@@ -208,6 +232,10 @@ def gomock(name, out, library = None, source_importpath = "", source = None, int
             copyright_file = copyright_file,
             mock_names = mock_names,
             typed = typed,
+            write_command_comment = write_command_comment,
+            write_package_comment = write_package_comment,
+            write_source_comment = write_source_comment,
+            write_generate_directive = write_generate_directive,
             **kwargs
         )
     else:
@@ -223,6 +251,10 @@ def gomock(name, out, library = None, source_importpath = "", source = None, int
             copyright_file = copyright_file,
             mock_names = mock_names,
             typed = typed,
+            write_command_comment = write_command_comment,
+            write_package_comment = write_package_comment,
+            write_source_comment = write_source_comment,
+            write_generate_directive = write_generate_directive,
             **kwargs
         )
 
@@ -371,6 +403,26 @@ _gomock_prog_exec = rule(
             doc = "Generate type-safe 'Return', 'Do', 'DoAndReturn' functions.",
             mandatory = False,
         ),
+        "write_command_comment": attr.bool(
+            doc = "Writes the command used as a comment if true.",
+            mandatory = False,
+            default = True,
+        ),
+        "write_package_comment": attr.bool(
+            doc = "Writes package documentation comment (godoc) if true.",
+            mandatory = False,
+            default = True,
+        ),
+        "write_source_comment": attr.bool(
+            doc = "Writes original file (source mode) or interface names (reflect mode) comment if true.",
+            mandatory = False,
+            default = True,
+        ),
+        "write_generate_directive": attr.bool(
+            doc = "Add //go:generate directive to regenerate the mock",
+            mandatory = False,
+            default = False,
+        ),
         "prog_bin": attr.label(
             doc = "The program binary generated by mockgen's -prog_only and compiled by bazel.",
             allow_single_file = True,
@@ -411,5 +463,13 @@ def _handle_shared_args(ctx, args):
         args += ["-mock_names", mock_names]
     if ctx.attr.typed:
         args += ["-typed"]
+    if not ctx.attr.write_command_comment:
+        args += ["--write_command_comment=false"]
+    if not ctx.attr.write_package_comment:
+        args += ["--write_package_comment=false"]
+    if not ctx.attr.write_source_comment:
+        args += ["--write_source_comment=false"]
+    if ctx.attr.write_generate_directive:
+        args += ["--write_generate_directive=true"]
 
     return args, needed_files

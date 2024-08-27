@@ -34,7 +34,8 @@ This rule has moved. See [gazelle rule] in the Gazelle repository.
 
 <pre>
 gomock(<a href="#gomock-name">name</a>, <a href="#gomock-out">out</a>, <a href="#gomock-library">library</a>, <a href="#gomock-source_importpath">source_importpath</a>, <a href="#gomock-source">source</a>, <a href="#gomock-interfaces">interfaces</a>, <a href="#gomock-package">package</a>, <a href="#gomock-self_package">self_package</a>, <a href="#gomock-aux_files">aux_files</a>,
-       <a href="#gomock-mockgen_tool">mockgen_tool</a>, <a href="#gomock-imports">imports</a>, <a href="#gomock-copyright_file">copyright_file</a>, <a href="#gomock-mock_names">mock_names</a>, <a href="#gomock-typed">typed</a>, <a href="#gomock-kwargs">kwargs</a>)
+       <a href="#gomock-mockgen_tool">mockgen_tool</a>, <a href="#gomock-imports">imports</a>, <a href="#gomock-copyright_file">copyright_file</a>, <a href="#gomock-mock_names">mock_names</a>, <a href="#gomock-typed">typed</a>, <a href="#gomock-write_command_comment">write_command_comment</a>,
+       <a href="#gomock-write_package_comment">write_package_comment</a>, <a href="#gomock-write_source_comment">write_source_comment</a>, <a href="#gomock-write_generate_directive">write_generate_directive</a>, <a href="#gomock-kwargs">kwargs</a>)
 </pre>
 
 Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
@@ -61,6 +62,10 @@ If `source` is given, the mocks are generated in source mode; otherwise in refle
 | <a id="gomock-copyright_file"></a>copyright_file |  optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.   |  <code>None</code> |
 | <a id="gomock-mock_names"></a>mock_names |  dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.   |  <code>{}</code> |
 | <a id="gomock-typed"></a>typed |  generate type-safe 'Return', 'Do', 'DoAndReturn' functions. See [mockgen's -typed](https://github.com/uber-go/mock#flags) for more information.   |  <code>False</code> |
+| <a id="gomock-write_command_comment"></a>write_command_comment |  writes the command used as a comment if true.   |  <code>True</code> |
+| <a id="gomock-write_package_comment"></a>write_package_comment |  writes package documentation comment (godoc) if true.   |  <code>True</code> |
+| <a id="gomock-write_source_comment"></a>write_source_comment |  writes original file (source mode) or interface names (reflect mode) comment if true.   |  <code>True</code> |
+| <a id="gomock-write_generate_directive"></a>write_generate_directive |  Add //go:generate directive to regenerate the mock.   |  <code>False</code> |
 | <a id="gomock-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 
