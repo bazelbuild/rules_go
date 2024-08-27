@@ -313,16 +313,14 @@ def _library_to_source(go, attr, library, coverage_instrumented, verify_resolver
 
         # TODO(zbarsky): Remove this once downstream has a chance to migrate.
         if verify_resolver_deps:
-            has_targets = False
             for dep in source["deps"]:
                 if type(dep) == "Target":
-                    has_targets = True
+                    print('Detected Targets in `source["deps"]` as a result of _resolver: ' +
+                          "{}, from target {}. ".format(library.resolve, str(library.label)) +
+                          "Please pass a list of `GoArchive`s instead, for examples `deps = [deps[GoArchive] for dep in deps]`. " +
+                          "This will be an error in the future.")
+                    source["deps"] = [get_archive(dep) for dep in source["deps"]]
                     break
-            if has_targets:
-                print('Detected Targets in `source["deps"]` as a result of _resolver. ' +
-                      "Please pass a list of `GoArchive`s instead, for examples `deps = [deps[GoArchive] for dep in deps]`. " +
-                      "This will be an error in the future.")
-                source["deps"] = [get_archive(dep) for dep in source["deps"]]
 
     return GoSource(**source)
 
