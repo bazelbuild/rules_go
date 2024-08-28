@@ -160,6 +160,10 @@ _gomock_source = rule(
             cfg = "exec",
             mandatory = False,
         ),
+        "mockgen_args": attr.string_list(
+            doc = "Additional arguments to pass to the mockgen tool",
+            mandatory = False,
+        ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
         ),
@@ -167,7 +171,7 @@ _gomock_source = rule(
     toolchains = [GO_TOOLCHAIN],
 )
 
-def gomock(name, out, library = None, source_importpath = "", source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, imports = {}, copyright_file = None, mock_names = {}, **kwargs):
+def gomock(name, out, library = None, source_importpath = "", source = None, interfaces = [], package = "", self_package = "", aux_files = {}, mockgen_tool = _MOCKGEN_TOOL, mockgen_args = [], imports = {}, copyright_file = None, mock_names = {}, **kwargs):
     """Calls [mockgen](https://github.com/golang/mock) to generates a Go file containing mocks from the given library.
 
     If `source` is given, the mocks are generated in source mode; otherwise in reflective mode.
@@ -183,6 +187,7 @@ def gomock(name, out, library = None, source_importpath = "", source = None, int
         self_package: the full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. See [mockgen's -self_package](https://github.com/golang/mock#flags) for more information.
         aux_files: a map from source files to their package path. This only needed when `source` is provided. See [mockgen's -aux_files](https://github.com/golang/mock#flags) for more information.
         mockgen_tool: the mockgen tool to run.
+        mockgen_args: additional arguments to pass to the mockgen tool.
         imports: dictionary of name-path pairs of explicit imports to use. See [mockgen's -imports](https://github.com/golang/mock#flags) for more information.
         copyright_file: optional file containing copyright to prepend to the generated contents. See [mockgen's -copyright_file](https://github.com/golang/mock#flags) for more information.
         mock_names: dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See [mockgen's -mock_names](https://github.com/golang/mock#flags) for more information.
@@ -199,6 +204,7 @@ def gomock(name, out, library = None, source_importpath = "", source = None, int
             self_package = self_package,
             aux_files = aux_files,
             mockgen_tool = mockgen_tool,
+            mockgen_args = mockgen_args,
             imports = imports,
             copyright_file = copyright_file,
             mock_names = mock_names,
@@ -213,6 +219,7 @@ def gomock(name, out, library = None, source_importpath = "", source = None, int
             package = package,
             self_package = self_package,
             mockgen_tool = mockgen_tool,
+            mockgen_args = mockgen_args,
             imports = imports,
             copyright_file = copyright_file,
             mock_names = mock_names,
@@ -375,6 +382,11 @@ _gomock_prog_exec = rule(
             cfg = "exec",
             mandatory = False,
         ),
+        "mockgen_args": attr.string_list(
+            doc = "Additional arguments to pass to the mockgen tool",
+            mandatory = False,
+            default = [],
+        ),
         "_go_context_data": attr.label(
             default = "//:go_context_data",
         ),
@@ -398,5 +410,7 @@ def _handle_shared_args(ctx, args):
     if len(ctx.attr.mock_names) > 0:
         mock_names = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.mock_names.items()])
         args += ["-mock_names", mock_names]
+    if ctx.attr.mockgen_args:
+        args += ctx.attr.mockgen_args
 
     return args, needed_files
