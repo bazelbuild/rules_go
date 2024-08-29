@@ -112,9 +112,9 @@ func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 	return res, nil
 }
 
-// applyTestFilter filters out test files from the list of sources according to
-// the filter.
-func applyTestFilter(testFilter string, srcs archiveSrcs) error {
+// applyTestFilter filters out test files from the list of sources in place
+// according to the filter.
+func applyTestFilter(testFilter string, srcs *archiveSrcs) error {
 	// TODO(jayconrod): remove -testfilter flag. The test action should compile
 	// the main, internal, and external packages by calling compileArchive
 	// with the correct sources for each.

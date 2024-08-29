@@ -98,7 +98,7 @@ func compilePkg(args []string) error {
 		return err
 	}
 
-	err = applyTestFilter(testFilter, srcs)
+	err = applyTestFilter(testFilter, &srcs)
 	if err != nil {
 		return err
 	}

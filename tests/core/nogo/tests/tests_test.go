@@ -39,6 +39,12 @@ go_test(
     embed = [":simple_lib"],
 )
 
+go_test(
+    name = "super_simple_test",
+    size = "small",
+    srcs = ["super_simple_test.go"],
+)
+
 nogo(
     name = "nogo",
     vet = True,
@@ -60,13 +66,29 @@ import (
 func TestFoo(t *testing.T) {
     simple.Foo()
 }
+-- super_simple_test.go --
+package super_simple_test
+
+import (
+	"testing"
+)
+
+func TestFoo(t *testing.T) {
+}
 `,
 		Nogo: `@//:nogo`,
 	})
 }
 
-func Test(t *testing.T) {
-	if out, err := bazel_testing.BazelOutput("test", "--verbose_failures", "//:all"); err != nil {
+func TestExternalTestWithFullImportpath(t *testing.T) {
+	if out, err := bazel_testing.BazelOutput("test", "//:all"); err != nil {
+		println(string(out))
+		t.Fatal(err)
+	}
+}
+
+func TestEmptyExternalTest(t *testing.T) {
+	if out, err := bazel_testing.BazelOutput("test", "//:all"); err != nil {
 		println(string(out))
 		t.Fatal(err)
 	}

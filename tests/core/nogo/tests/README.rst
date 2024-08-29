@@ -10,6 +10,4 @@ Verifies interactions between `nogo`_ and `go_test`_.
 tests_test
 =============================
 
-Tests that `nogo`_ can handle test packages importing the tested package by full
-import path.
-
+Tests that `nogo`_ can handle various edge cases of external tests.
