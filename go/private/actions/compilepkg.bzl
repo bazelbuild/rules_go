@@ -242,15 +242,12 @@ def _run_nogo(
 
     inputs_direct = (sources + [nogo, sdk.package_list] +
                      [archive.data.facts_file for archive in archives if archive.data.facts_file] +
-                     [archive.data.export_file for archive in archives])
+                     [archive.data.export_file for archive in archives] + ([cgo_go_srcs] if cgo_go_srcs else []))
     inputs_transitive = [sdk.tools, sdk.headers, go.stdlib.libs]
     outputs = [out_facts, out_log]
 
     args = go.builder_args(go, "nogo", use_path_mapping = True)
     args.add_all(sources, before_each = "-src")
-    if cgo_go_srcs:
-        inputs_direct.append(cgo_go_srcs)
-        args.add_all([cgo_go_srcs], before_each = "-src")
     if cover_mode:
         args.add("-cover_mode", cover_mode)
     if recompile_internal_deps:
