@@ -68,41 +68,10 @@ func nogo(args []string) error {
 	}
 	defer cleanup()
 
-	imports, err := checkImports(srcs.goSrcs, deps, packageListPath, importPath, recompileInternalDeps)
+	compilingWithCgo := os.Getenv("CGO_ENABLED") == "1" && haveCgo
+	importcfgPath, err := checkImportsAndBuildCfg(goenv, importPath, srcs, deps, packageListPath, recompileInternalDeps, compilingWithCgo, coverMode, workDir)
 	if err != nil {
 		return err
-	}
-	cgoEnabled := os.Getenv("CGO_ENABLED") == "1"
-	if haveCgo && cgoEnabled {
-		// cgo generated code imports some extra packages.
-		imports["runtime/cgo"] = nil
-		imports["syscall"] = nil
-		imports["unsafe"] = nil
-	}
-	if coverMode != "" {
-		if coverMode == "atomic" {
-			imports["sync/atomic"] = nil
-		}
-		const coverdataPath = "github.com/bazelbuild/rules_go/go/tools/coverdata"
-		var coverdata *archive
-		for i := range deps {
-			if deps[i].importPath == coverdataPath {
-				coverdata = &deps[i]
-				break
-			}
-		}
-		if coverdata == nil {
-			return errors.New("coverage requested but coverdata dependency not provided")
-		}
-		imports[coverdataPath] = coverdata
-	}
-
-	importcfgPath, err := buildImportcfgFileForCompile(imports, goenv.installSuffix, filepath.Dir(outFactsPath))
-	if err != nil {
-		return err
-	}
-	if !goenv.shouldPreserveWorkDir {
-		defer os.Remove(importcfgPath)
 	}
 
 	return runNogo(workDir, nogoPath, goSrcs, facts, importPath, importcfgPath, outFactsPath, outLogPath)
