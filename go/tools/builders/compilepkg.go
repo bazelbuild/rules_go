@@ -98,29 +98,9 @@ func compilePkg(args []string) error {
 		return err
 	}
 
-	// TODO(jayconrod): remove -testfilter flag. The test action should compile
-	// the main, internal, and external packages by calling compileArchive
-	// with the correct sources for each.
-	switch testFilter {
-	case "off":
-	case "only":
-		testSrcs := make([]fileInfo, 0, len(srcs.goSrcs))
-		for _, f := range srcs.goSrcs {
-			if strings.HasSuffix(f.pkg, "_test") {
-				testSrcs = append(testSrcs, f)
-			}
-		}
-		srcs.goSrcs = testSrcs
-	case "exclude":
-		libSrcs := make([]fileInfo, 0, len(srcs.goSrcs))
-		for _, f := range srcs.goSrcs {
-			if !strings.HasSuffix(f.pkg, "_test") {
-				libSrcs = append(libSrcs, f)
-			}
-		}
-		srcs.goSrcs = libSrcs
-	default:
-		return fmt.Errorf("invalid test filter %q", testFilter)
+	err = applyTestFilter(testFilter, srcs)
+	if err != nil {
+		return err
 	}
 
 	return compileArchive(

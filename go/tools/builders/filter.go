@@ -112,6 +112,36 @@ func filterAndSplitFiles(fileNames []string) (archiveSrcs, error) {
 	return res, nil
 }
 
+// applyTestFilter filters out test files from the list of sources according to
+// the filter.
+func applyTestFilter(testFilter string, srcs archiveSrcs) error {
+	// TODO(jayconrod): remove -testfilter flag. The test action should compile
+	// the main, internal, and external packages by calling compileArchive
+	// with the correct sources for each.
+	switch testFilter {
+	case "off":
+	case "only":
+		testSrcs := make([]fileInfo, 0, len(srcs.goSrcs))
+		for _, f := range srcs.goSrcs {
+			if strings.HasSuffix(f.pkg, "_test") {
+				testSrcs = append(testSrcs, f)
+			}
+		}
+		srcs.goSrcs = testSrcs
+	case "exclude":
+		libSrcs := make([]fileInfo, 0, len(srcs.goSrcs))
+		for _, f := range srcs.goSrcs {
+			if !strings.HasSuffix(f.pkg, "_test") {
+				libSrcs = append(libSrcs, f)
+			}
+		}
+		srcs.goSrcs = libSrcs
+	default:
+		return fmt.Errorf("invalid test filter %q", testFilter)
+	}
+	return nil
+}
+
 // readFileInfo applies build constraints to an input file and returns whether
 // it should be compiled.
 func readFileInfo(bctx build.Context, input string) (fileInfo, error) {
