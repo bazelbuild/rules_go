@@ -17,6 +17,10 @@ load(
     "get_nogo",
 )
 load(
+    "//go/private:context.bzl",
+    "get_nogo",
+)
+load(
     "//go/private:mode.bzl",
     "LINKMODE_C_ARCHIVE",
     "LINKMODE_C_SHARED",
