@@ -372,9 +372,7 @@ func (act *action) execOnce() {
 	act.pass = pass
 
 	var err error
-	if act.pkg.illTyped && !pass.Analyzer.RunDespiteErrors {
-		err = fmt.Errorf("analysis skipped due to type-checking error: %v", act.pkg.typeCheckError)
-	} else {
+	if !act.pkg.illTyped || pass.Analyzer.RunDespiteErrors {
 		act.result, err = pass.Analyzer.Run(pass)
 		if err == nil {
 			if got, want := reflect.TypeOf(act.result), pass.Analyzer.ResultType; got != want {
@@ -471,7 +469,13 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 	if cwd == "" || err != nil {
 		errs = append(errs, fmt.Errorf("nogo failed to get CWD: %w", err))
 	}
+	numSkipped := 0
 	for _, act := range actions {
+		if act.pkg.illTyped && !act.a.RunDespiteErrors {
+			// Don't report type-checking errors once per analyzer.
+			numSkipped++
+			continue
+		}
 		if act.err != nil {
 			// Analyzer failed.
 			errs = append(errs, fmt.Errorf("analyzer %q failed: %v", act.a.Name, act.err))
@@ -542,6 +546,9 @@ func checkAnalysisResults(actions []*action, pkg *goPackage) string {
 				diagnostics = append(diagnostics, entry{Diagnostic: d, Analyzer: act.a})
 			}
 		}
+	}
+	if numSkipped > 0 {
+		errs = append(errs, fmt.Errorf("%d analyzers skipped due to type-checking error: %v", numSkipped, pkg.typeCheckError))
 	}
 	if len(diagnostics) == 0 && len(errs) == 0 {
 		return ""

@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 		Nogo: "@//:nogo",
 		Main: `
 -- BUILD.bazel --
-load("@io_bazel_rules_go//go:def.bzl", "go_library", "nogo")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "nogo")
 
 nogo(
     name = "nogo",
@@ -122,6 +122,12 @@ go_library(
     name = "dep",
     srcs = ["dep.go"],
     importpath = "dep",
+)
+
+go_binary(
+	name = "type_check_fail",
+	srcs = ["type_check_fail.go"],
+	pure = "on",
 )
 
 -- foofuncname.go --
@@ -434,6 +440,16 @@ func Foo() bool { // This should fail foofuncname
   return Bar()
 }
 
+-- type_check_fail.go --
+package type_check_fail
+
+import (
+	"strings"
+)
+
+func Foo() bool {
+  return strings.Split("a,b,c", ",") // This fails type-checking
+}
 `,
 	})
 }
@@ -443,6 +459,7 @@ func Test(t *testing.T) {
 		desc, config, target string
 		wantSuccess          bool
 		includes, excludes   []string
+		bazelArgs []string
 	}{
 		{
 			desc:        "default_config",
@@ -508,6 +525,16 @@ func Test(t *testing.T) {
 				`examplepkg[\\/]pure_src_with_err_calling_native.go:.*function must not be named Foo \(foofuncname\)`,
 			},
 		}, {
+			desc:        "type_check_fail",
+			config:      "config.json",
+			target:      "//:type_check_fail",
+			wantSuccess: false,
+			includes: []string{
+				"3 analyzers skipped due to type-checking error: type_check_fail.go:8:10:",
+			},
+			// Ensure that nogo runs even though compilation fails
+			bazelArgs: []string{"--keep_going"},
+		}, {
 			desc:        "no_errors",
 			target:      "//:no_errors",
 			wantSuccess: true,
@@ -527,7 +554,7 @@ func Test(t *testing.T) {
 				defer replaceInFile("BUILD.bazel", customConfig, origConfig)
 			}
 
-			cmd := bazel_testing.BazelCmd("build", test.target)
+			cmd := bazel_testing.BazelCmd(append([]string{"build", test.target}, test.bazelArgs...)...)
 			stderr := &bytes.Buffer{}
 			cmd.Stderr = stderr
 			if err := cmd.Run(); err == nil && !test.wantSuccess {
