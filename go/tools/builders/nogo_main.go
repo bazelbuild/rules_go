@@ -77,6 +77,8 @@ func run(args []string) (error, int) {
 	importcfg := flags.String("importcfg", "", "The import configuration file")
 	packagePath := flags.String("p", "", "The package path (importmap) of the package being compiled")
 	xPath := flags.String("x", "", "The archive file where serialized facts should be written")
+	var ignores multiFlag
+	flags.Var(&ignores, "ignore", "Names of files to ignore")
 	flags.Parse(args)
 	srcs := flags.Args()
 
@@ -85,7 +87,7 @@ func run(args []string) (error, int) {
 		return fmt.Errorf("error parsing importcfg: %v", err), nogoError
 	}
 
-	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, factMap, srcs)
+	diagnostics, facts, err := checkPackage(analyzers, *packagePath, packageFile, importMap, factMap, srcs, ignores)
 	if err != nil {
 		return fmt.Errorf("error running analyzers: %v", err), nogoError
 	}
@@ -156,7 +158,7 @@ func readImportCfg(file string) (packageFile map[string]string, importMap map[st
 // It returns an empty string if no source code diagnostics need to be printed.
 //
 // This implementation was adapted from that of golang.org/x/tools/go/checker/internal/checker.
-func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, factMap map[string]string, filenames []string) (string, []byte, error) {
+func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFile, importMap map[string]string, factMap map[string]string, filenames, ignoreFiles []string) (string, []byte, error) {
 	// Register fact types and establish dependencies between analyzers.
 	actions := make(map[*analysis.Analyzer]*action)
 	var visit func(a *analysis.Analyzer) *action
@@ -211,8 +213,22 @@ func checkPackage(analyzers []*analysis.Analyzer, packagePath string, packageFil
 		act.pkg = pkg
 	}
 
+	ignoreFilesSet := map[string]struct{}{}
+	for _, ignore := range ignoreFiles {
+		ignoreFilesSet[ignore] = struct{}{}
+	}
 	// Process nolint directives similar to golangci-lint.
+	// Also skip over fully ignored files.
 	for _, f := range pkg.syntax {
+		if _, ok := ignoreFilesSet[pkg.fset.Position(f.Pos()).Filename]; ok {
+			for _, act := range actions {
+				act.nolint = append(act.nolint, &Range{
+					from: pkg.fset.Position(f.FileStart),
+					to:   pkg.fset.Position(f.End()).Line,
+				})
+			}
+			continue
+		}
 		// CommentMap will correctly associate comments to the largest node group
 		// applicable. This handles inline comments that might trail a large
 		// assignment and will apply the comment to the entire assignment.

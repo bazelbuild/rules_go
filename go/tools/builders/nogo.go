@@ -20,13 +20,14 @@ func nogo(args []string) error {
 
 	fs := flag.NewFlagSet("GoNogo", flag.ExitOnError)
 	goenv := envFlags(fs)
-	var unfilteredSrcs, recompileInternalDeps multiFlag
+	var unfilteredSrcs, ignoreSrcs, recompileInternalDeps multiFlag
 	var deps, facts archiveMultiFlag
 	var importPath, packagePath, nogoPath, packageListPath string
 	var testFilter string
 	var outFactsPath, outLogPath string
 	var coverMode string
-	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and compiled")
+	fs.Var(&unfilteredSrcs, "src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and checked")
+	fs.Var(&ignoreSrcs, "ignore_src", ".go, .c, .cc, .m, .mm, .s, or .S file to be filtered and checked, but with its diagnostics ignored")
 	fs.Var(&deps, "arc", "Import path, package path, and file name of a direct dependency, separated by '='")
 	fs.Var(&facts, "facts", "Import path, package path, and file name of a direct dependency's nogo facts file, separated by '='")
 	fs.StringVar(&importPath, "importpath", "", "The import path of the package being compiled. Not passed to the compiler, but may be displayed in debug data.")
@@ -49,7 +50,7 @@ func nogo(args []string) error {
 	}
 
 	// Filter sources.
-	srcs, err := filterAndSplitFiles(unfilteredSrcs)
+	srcs, err := filterAndSplitFiles(append(unfilteredSrcs, ignoreSrcs...))
 	if err != nil {
 		return err
 	}
@@ -81,10 +82,10 @@ func nogo(args []string) error {
 		return err
 	}
 
-	return runNogo(workDir, nogoPath, goSrcs, facts, importPath, importcfgPath, outFactsPath, outLogPath)
+	return runNogo(workDir, nogoPath, goSrcs, ignoreSrcs, facts, importPath, importcfgPath, outFactsPath, outLogPath)
 }
 
-func runNogo(workDir string, nogoPath string, srcs []string, facts []archive, packagePath, importcfgPath, outFactsPath string, outLogPath string) error {
+func runNogo(workDir string, nogoPath string, srcs, ignores []string, facts []archive, packagePath, importcfgPath, outFactsPath string, outLogPath string) error {
 	if len(srcs) == 0 {
 		// emit_compilepkg expects a nogo facts file, even if it's empty.
 		// We also need to write the validation output log.
@@ -105,6 +106,9 @@ func runNogo(workDir string, nogoPath string, srcs []string, facts []archive, pa
 		args = append(args, "-fact", fmt.Sprintf("%s=%s", fact.importPath, fact.file))
 	}
 	args = append(args, "-x", outFactsPath)
+	for _, ignore := range ignores {
+		args = append(args, "-ignore", ignore)
+	}
 	args = append(args, srcs...)
 
 	paramsFile := filepath.Join(workDir, "nogo.param")
