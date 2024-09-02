@@ -15,6 +15,7 @@
 package importpath_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
@@ -43,6 +44,18 @@ go_test(
     name = "super_simple_test",
     size = "small",
     srcs = ["super_simple_test.go"],
+)
+
+go_test(
+    name = "diagnostic_external_test",
+    size = "small",
+    srcs = ["diagnostic_external_test.go"],
+)
+
+go_test(
+    name = "diagnostic_internal_test",
+    size = "small",
+    srcs = ["diagnostic_internal_test.go"],
 )
 
 nogo(
@@ -75,21 +88,63 @@ import (
 
 func TestFoo(t *testing.T) {
 }
+-- diagnostic_external_test.go --
+package diagnostic_test
+
+import (
+	"testing"
+)
+
+func TestFoo(t *testing.T) {
+    if TestFoo == nil {
+		t.Fatal("TestFoo is nil")
+    }
+}
+-- diagnostic_internal_test.go --
+package diagnostic
+
+import (
+	"testing"
+)
+
+func TestFoo(t *testing.T) {
+    if TestFoo == nil {
+		t.Fatal("TestFoo is nil")
+    }
+}
 `,
 		Nogo: `@//:nogo`,
 	})
 }
 
 func TestExternalTestWithFullImportpath(t *testing.T) {
-	if out, err := bazel_testing.BazelOutput("test", "//:all"); err != nil {
+	if out, err := bazel_testing.BazelOutput("test", "//:simple_test"); err != nil {
 		println(string(out))
 		t.Fatal(err)
 	}
 }
 
 func TestEmptyExternalTest(t *testing.T) {
-	if out, err := bazel_testing.BazelOutput("test", "//:all"); err != nil {
+	if out, err := bazel_testing.BazelOutput("test", "//:super_simple_test"); err != nil {
 		println(string(out))
 		t.Fatal(err)
+	}
+}
+
+func TestDiagnosticInExternalTest(t *testing.T) {
+	if _, err := bazel_testing.BazelOutput("test", "//:diagnostic_external_test"); err == nil {
+		t.Fatal("unexpected success")
+	} else if !strings.Contains(err.Error(), "diagnostic_external_test.go:8:8: comparison of function TestFoo == nil is always false (nilfunc)") {
+		println(err.Error())
+		t.Fatal("unexpected output")
+	}
+}
+
+func TestDiagnosticInInternalTest(t *testing.T) {
+	if _, err := bazel_testing.BazelOutput("test", "//:diagnostic_internal_test"); err == nil {
+		t.Fatal("unexpected success")
+	} else if !strings.Contains(err.Error(), "diagnostic_internal_test.go:8:8: comparison of function TestFoo == nil is always false (nilfunc)") {
+		println(err.Error())
+		t.Fatal("unexpected output")
 	}
 }

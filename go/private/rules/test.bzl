@@ -67,10 +67,14 @@ def _go_test_impl(ctx):
         goarch = ctx.attr.goarch,
     )
 
+    validation_outputs = []
+
     # Compile the library to test with internal white box tests
     internal_library = go.new_library(go, testfilter = "exclude")
     internal_source = go.library_to_source(go, ctx.attr, internal_library, ctx.coverage_instrumented())
     internal_archive = go.archive(go, internal_source)
+    if internal_archive.data._validation_output:
+        validation_outputs.append(internal_archive.data._validation_output)
     go_srcs = [src for src in internal_source.srcs if src.extension == "go"]
 
     # Compile the library with the external black box tests
@@ -89,6 +93,8 @@ def _go_test_impl(ctx):
     ), external_library, ctx.coverage_instrumented())
     external_source, internal_archive = _recompile_external_deps(go, external_source, internal_archive, [t.label for t in ctx.attr.embed])
     external_archive = go.archive(go, external_source, is_external_pkg = True)
+    if external_archive.data._validation_output:
+        validation_outputs.append(external_archive.data._validation_output)
 
     # now generate the main function
     repo_relative_rundir = ctx.attr.rundir or ctx.label.package or "."
@@ -172,7 +178,6 @@ def _go_test_impl(ctx):
         version_file = ctx.version_file,
         info_file = ctx.info_file,
     )
-    validation_output = test_archive.data._validation_output
 
     env = {}
     for k, v in ctx.attr.env.items():
@@ -194,7 +199,7 @@ def _go_test_impl(ctx):
         ),
         OutputGroupInfo(
             compilation_outputs = [internal_archive.data.file],
-            _validation = [validation_output] if validation_output else [],
+            _validation = validation_outputs,
         ),
         coverage_common.instrumented_files_info(
             ctx,
