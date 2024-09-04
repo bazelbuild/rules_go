@@ -530,7 +530,7 @@ func Test(t *testing.T) {
 			target:      "//:type_check_fail",
 			wantSuccess: false,
 			includes: []string{
-				"3 analyzers skipped due to type-checking error: type_check_fail.go:8:10:",
+				"4 analyzers skipped due to type-checking error: type_check_fail.go:8:10:",
 			},
 			// Ensure that nogo runs even though compilation fails
 			bazelArgs: []string{"--keep_going"},
