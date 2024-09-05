@@ -115,7 +115,7 @@ _COMPILER_OPTIONS_DENYLIST = dict({
 
 _LINKER_OPTIONS_DENYLIST = {
     "-Wl,--gc-sections": None,
-    "-pie": None, # See https://github.com/bazelbuild/rules_go/issues/3691.
+    "-pie": None,  # See https://github.com/bazelbuild/rules_go/issues/3691.
 }
 
 _UNSUPPORTED_FEATURES = [
