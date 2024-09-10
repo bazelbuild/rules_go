@@ -311,6 +311,7 @@ _go_test_kwargs = {
             doc = """Map of defines to add to the go link command.
             See [Defines and stamping] for examples of how to use these.
             """,
+            "testing.testBinary" = "1",
         ),
         "linkmode": attr.string(
             default = "auto",
