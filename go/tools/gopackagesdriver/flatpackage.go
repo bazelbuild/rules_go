@@ -15,6 +15,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"go/parser"
@@ -22,6 +23,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"io"
 )
 
 type ResolvePkgFunc func(importPath string) string
@@ -169,6 +171,8 @@ func (fp *FlatPackage) IsStdlib() bool {
 	return fp.Standard
 }
 
+// ResolveImports resolves imports for non-stdlib packages and integrates file overlays
+// to allow modification of package imports without modifying disk files.
 func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc, overlays map[string][]byte) error {
 	// Stdlib packages are already complete import wise
 	if fp.IsStdlib() {
@@ -178,11 +182,14 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc, overlays map[strin
 	fset := token.NewFileSet()
 
 	for _, file := range fp.CompiledGoFiles {
-		var overlayContent []byte
+		// Only assign overlayContent when an overlay for the file exists, since ParseFile checks by type.
+		// If overlay is assigned directly from the map, it will have []byte as type
+		// Empty []byte types are parsed into io.EOF
+		var overlayReader io.Reader
 		if content, ok := overlays[file]; ok {
-			overlayContent = content
+			overlayReader = bytes.NewReader(content)
 		}
-		f, err := parser.ParseFile(fset, file, overlayContent, parser.ImportsOnly)
+		f, err := parser.ParseFile(fset, file, overlayReader, parser.ImportsOnly)
 		if err != nil {
 			return err
 		}
