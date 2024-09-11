@@ -169,7 +169,7 @@ func (fp *FlatPackage) IsStdlib() bool {
 	return fp.Standard
 }
 
-func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) error {
+func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc, overlays map[string][]byte) error {
 	// Stdlib packages are already complete import wise
 	if fp.IsStdlib() {
 		return nil
@@ -178,7 +178,11 @@ func (fp *FlatPackage) ResolveImports(resolve ResolvePkgFunc) error {
 	fset := token.NewFileSet()
 
 	for _, file := range fp.CompiledGoFiles {
-		f, err := parser.ParseFile(fset, file, nil, parser.ImportsOnly)
+		var overlayContent []byte
+		if content, ok := overlays[file]; ok {
+			overlayContent = content
+		}
+		f, err := parser.ParseFile(fset, file, overlayContent, parser.ImportsOnly)
 		if err != nil {
 			return err
 		}
