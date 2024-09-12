@@ -135,9 +135,11 @@ func TestBaseFileLookup(t *testing.T) {
 	})
 
 	t.Run("dependency", func(t *testing.T) {
-		osPkg := findPackageByID(resp.Packages, osPkgID)
-		if osPkg == nil {
-			findPackageByID(resp.Packages, bzlmodOsPkgID)
+		var osPkg *FlatPackage
+		for _, p := range resp.Packages {
+			if p.ID == osPkgID || p.ID == bzlmodOsPkgID {
+				osPkg = p
+			}
 		}
 
 		if osPkg == nil {
@@ -387,54 +389,6 @@ func assertSuffixesInList(t *testing.T, list []string, expectedSuffixes ...strin
 			t.Errorf("Expected suffix %q in list, but was not found: %+v", suffix, list)
 		}
 	}
-}
-
-func findPackageByID(packages []*FlatPackage, id string) *FlatPackage {
-	for _, pkg := range packages {
-		if pkg.ID == id {
-			return pkg
-		}
-	}
-	return nil
-}
-
-// get map keys
-func keysFromMap[K comparable, V any](m map[K]V) []K {
-	keys := make([]K, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-// contains checks if a slice contains an element
-func contains[S ~[]E, E comparable](set S, element E) bool {
-	found := false
-	for _, setElement := range set {
-		if setElement == element {
-			found = true
-			break
-		}
-	}
-	return found
-}
-
-// containsAll checks if a slice contains all elements of another slice
-func containsAll[S ~[]E, E comparable](set S, subset S) bool {
-	for _, subsetElement := range subset {
-		if !contains(set, subsetElement) {
-			return false
-		}
-	}
-	return true
-}
-
-// equalSets checks if two slices are equal sets
-func equalSets[S ~[]E, E comparable](set1 S, set2 S) bool {
-	if len(set1) != len(set2) {
-		return false
-	}
-	return containsAll(set1, set2)
 }
 
 // expectSetEquality checks if two slices are equal sets and logs an error if they are not
