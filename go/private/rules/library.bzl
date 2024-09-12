@@ -48,6 +48,7 @@ def _go_library_impl(ctx):
     source = go.library_to_source(go, ctx.attr, library, ctx.coverage_instrumented())
     archive = go.archive(go, source)
     validation_output = archive.data._validation_output
+    nogo_fix_output = archive.data._out_nogo_fix
 
     return [
         library,
@@ -65,6 +66,7 @@ def _go_library_impl(ctx):
         OutputGroupInfo(
             cgo_exports = archive.cgo_exports,
             compilation_outputs = [archive.data.file],
+            out_nogo_fix = [nogo_fix_output] if nogo_fix_output else [],
             _validation = [validation_output] if validation_output else [],
         ),
     ]
