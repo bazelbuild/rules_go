@@ -71,6 +71,7 @@ go_sdk(
     root_file = "ROOT",
     tools = [":tools"],
     version = "{version}",
+    language_version = "{language_version}",
 )
 
 go_tool_binary(

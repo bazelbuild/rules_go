@@ -1,8 +1,10 @@
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 load("@my_rules_go//extras:gomock.bzl", "gomock")
 load(
     "@my_rules_go//go:def.bzl",
     "TOOLS_NOGO",
     "go_binary",
+    "go_cross_binary",
     "go_library",
     "go_test",
     "nogo",
@@ -32,9 +34,28 @@ go_test(
     embed = [":lib"],
 )
 
-go_test(
+native_test(
     name = "sdk_patch_test",
+    src = ":sdk_patch_test_bin",
+)
+
+go_cross_binary(
+    name = "sdk_patch_test_bin",
+    testonly = True,
+    # Select the patched SDK.
+    sdk_version = "1.23.0",
+    target = ":sdk_patch_test_orig",
+)
+
+go_test(
+    name = "sdk_patch_test_orig",
     srcs = ["sdk_patch_test.go"],
+    tags = ["manual"],
+)
+
+go_test(
+    name = "language_version_test",
+    srcs = ["language_version_test.go"],
 )
 
 go_library(

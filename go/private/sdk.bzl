@@ -20,25 +20,38 @@ load("//go/private/skylib/lib:versions.bzl", "versions")
 
 MIN_SUPPORTED_VERSION = (1, 14, 0)
 
+_COMMON_ATTRS = {
+    "version": attr.string(
+        doc = "The version of the Go SDK (e.g. \"1.22.3\")",
+    ),
+    "language_version": attr.string(
+        doc = "The version of the Go language to use (e.g. \"1.22.3\"). If not set, this defaults to the SDK version.",
+    ),
+    "experiments": attr.string_list(
+        doc = "Go experiments to enable via GOEXPERIMENT",
+    ),
+    "_sdk_build_file": attr.label(
+        default = Label("//go/private:BUILD.sdk.bazel"),
+    ),
+}
+
 def _go_host_sdk_impl(ctx):
     goroot = _detect_host_sdk(ctx)
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version, experiments = ctx.attr.experiments)
+    _sdk_build_file(
+        ctx,
+        platform,
+        version,
+        experiments = ctx.attr.experiments,
+        language_version = ctx.attr.language_version,
+    )
     _local_sdk(ctx, goroot)
 
 go_host_sdk_rule = repository_rule(
     implementation = _go_host_sdk_impl,
     environ = ["GOROOT"],
-    attrs = {
-        "version": attr.string(),
-        "experiments": attr.string_list(
-            doc = "Go experiments to enable via GOEXPERIMENT",
-        ),
-        "_sdk_build_file": attr.label(
-            default = Label("//go/private:BUILD.sdk.bazel"),
-        ),
-    },
+    attrs = _COMMON_ATTRS,
 )
 
 def go_host_sdk(name, register_toolchains = True, **kwargs):
@@ -118,7 +131,13 @@ def _go_download_sdk_impl(ctx):
     patch(ctx, patch_args = _get_patch_args(ctx.attr.patch_strip))
 
     detected_version = _detect_sdk_version(ctx, ".")
-    _sdk_build_file(ctx, platform, detected_version, experiments = ctx.attr.experiments)
+    _sdk_build_file(
+        ctx,
+        platform,
+        detected_version,
+        experiments = ctx.attr.experiments,
+        language_version = ctx.attr.language_version,
+    )
 
     if not ctx.attr.sdks and not ctx.attr.version:
         # Returning this makes Bazel print a message that 'version' must be
@@ -136,15 +155,11 @@ def _go_download_sdk_impl(ctx):
 
 go_download_sdk_rule = repository_rule(
     implementation = _go_download_sdk_impl,
-    attrs = {
+    attrs = _COMMON_ATTRS | {
         "goos": attr.string(),
         "goarch": attr.string(),
         "sdks": attr.string_list_dict(),
-        "experiments": attr.string_list(
-            doc = "Go experiments to enable via GOEXPERIMENT",
-        ),
         "urls": attr.string_list(default = ["https://dl.google.com/go/{}"]),
-        "version": attr.string(),
         "strip_prefix": attr.string(default = "go"),
         "patches": attr.label_list(
             doc = "A list of patches to apply to the SDK after downloading it",
@@ -152,9 +167,6 @@ go_download_sdk_rule = repository_rule(
         "patch_strip": attr.int(
             default = 0,
             doc = "The number of leading path segments to be stripped from the file name in the patches.",
-        ),
-        "_sdk_build_file": attr.label(
-            default = Label("//go/private:BUILD.sdk.bazel"),
         ),
     },
 )
@@ -332,20 +344,13 @@ def _go_local_sdk_impl(ctx):
     goroot = ctx.attr.path
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version, ctx.attr.experiments)
+    _sdk_build_file(ctx, platform, version, ctx.attr.experiments, ctx.attr.language_version)
     _local_sdk(ctx, goroot)
 
 _go_local_sdk = repository_rule(
     implementation = _go_local_sdk_impl,
-    attrs = {
+    attrs = _COMMON_ATTRS | {
         "path": attr.string(),
-        "version": attr.string(),
-        "experiments": attr.string_list(
-            doc = "Go experiments to enable via GOEXPERIMENT",
-        ),
-        "_sdk_build_file": attr.label(
-            default = Label("//go/private:BUILD.sdk.bazel"),
-        ),
     },
 )
 
@@ -378,12 +383,12 @@ def _go_wrap_sdk_impl(ctx):
     goroot = str(ctx.path(root_file).dirname)
     platform = _detect_sdk_platform(ctx, goroot)
     version = _detect_sdk_version(ctx, goroot)
-    _sdk_build_file(ctx, platform, version, ctx.attr.experiments)
+    _sdk_build_file(ctx, platform, version, ctx.attr.experiments, ctx.attr.language_version)
     _local_sdk(ctx, goroot)
 
 _go_wrap_sdk = repository_rule(
     implementation = _go_wrap_sdk_impl,
-    attrs = {
+    attrs = _COMMON_ATTRS | {
         "root_file": attr.label(
             mandatory = False,
             doc = "A file in the SDK root direcotry. Used to determine GOROOT.",
@@ -391,13 +396,6 @@ _go_wrap_sdk = repository_rule(
         "root_files": attr.string_dict(
             mandatory = False,
             doc = "A set of mappings from the host platform to a file in the SDK's root directory",
-        ),
-        "version": attr.string(),
-        "experiments": attr.string_list(
-            doc = "Go experiments to enable via GOEXPERIMENT",
-        ),
-        "_sdk_build_file": attr.label(
-            default = Label("//go/private:BUILD.sdk.bazel"),
         ),
     },
 )
@@ -495,7 +493,7 @@ def _local_sdk(ctx, path):
             continue
         ctx.symlink(entry, entry.basename)
 
-def _sdk_build_file(ctx, platform, version, experiments):
+def _sdk_build_file(ctx, platform, version, experiments, language_version):
     ctx.file("ROOT")
     goos, _, goarch = platform.partition("_")
 
@@ -516,6 +514,7 @@ def _sdk_build_file(ctx, platform, version, experiments):
             "{goarch}": goarch,
             "{exe}": ".exe" if goos == "windows" else "",
             "{version}": version,
+            "{language_version}": language_version,
             "{experiments}": repr(",".join(experiments)),
             "{exec_compatible_with}": repr([
                 GOARCH_CONSTRAINTS[goarch],

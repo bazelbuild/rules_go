@@ -354,6 +354,8 @@ func (act *action) execOnce() {
 		factFilter[reflect.TypeOf(f)] = true
 	}
 	pass := &analysis.Pass{
+		// TODO: Set Module and in particular Module.GoVersion to use the
+		// correct Go language version for the package being analyzed.
 		Analyzer:          act.a,
 		Fset:              act.pkg.fset,
 		Files:             act.pkg.syntax,

@@ -31,11 +31,11 @@ To register a particular version of the Go SDK, use the `go_sdk` module extensio
 go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
 
 # Download an SDK for the host OS & architecture as well as common remote execution platforms.
-go_sdk.download(version = "1.20.3")
+go_sdk.download(version = "1.23.1")
 
 # Alternately, download an SDK for a fixed OS/architecture.
 go_sdk.download(
-    version = "1.20.3",
+    version = "1.23.1",
     goarch = "amd64",
     goos = "linux",
 )

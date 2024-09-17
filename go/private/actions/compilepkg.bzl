@@ -146,7 +146,11 @@ def emit_compilepkg(
 
     link_mode_flag = link_mode_arg(go.mode)
 
-    gc_flags = gc_goopts + go.mode.gc_goopts
+    gc_flags = []
+    if sdk.language_version:
+        gc_flags.append("-lang=go" + sdk.language_version)
+    gc_flags += gc_goopts
+    gc_flags += go.mode.gc_goopts
     if go.mode.race:
         gc_flags.append("-race")
     if go.mode.msan:

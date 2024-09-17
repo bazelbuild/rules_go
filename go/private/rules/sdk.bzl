@@ -34,6 +34,7 @@ def _go_sdk_impl(ctx):
         tools = depset(ctx.files.tools),
         go = ctx.executable.go,
         version = ctx.attr.version,
+        language_version = ctx.attr.language_version,
     )]
 
 go_sdk = rule(
@@ -93,6 +94,9 @@ go_sdk = rule(
         ),
         "version": attr.string(
             doc = "The version of the Go SDK.",
+        ),
+        "language_version": attr.string(
+            doc = "The version of the Go language to use.",
         ),
     },
     doc = ("Collects information about a Go SDK. The SDK must have a normal " +
