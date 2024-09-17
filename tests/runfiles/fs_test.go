@@ -94,7 +94,7 @@ func TestFS_directory(t *testing.T) {
 		// Runfiles directories created by Bazel consist of symlinks to the real files.
 		target, err := filepath.EvalSymlinks(targetSymlink)
 		if err != nil {
-			t.Fatal(err)
+			t.Fatalf("EvalSymlinks failed on %q (%q): %v", source, targetSymlink, err)
 		}
 		err = os.MkdirAll(filepath.Dir(filepath.Join(directory, source)), 0o755)
 		if err != nil {
