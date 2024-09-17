@@ -75,7 +75,7 @@ instead.
 
     load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_nogo")
     go_rules_dependencies()
-    go_register_toolchains(version = "1.20.7")
+    go_register_toolchains(version = "1.23.1")
     go_register_nogo(
       nogo = "@//:my_nogo"  # my_nogo is in the top-level BUILD file of this workspace
       includes = ["@//:__subpackages__"],  # Labels to lint. By default only lints code in workspace.

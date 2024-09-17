@@ -27,7 +27,7 @@ bazel_features_deps()
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.21.8")
+go_register_toolchains(version = "1.23.1")
 
 http_archive(
     name = "rules_proto",
@@ -129,6 +129,12 @@ http_archive(
     ],
 )
 
+# TODO: Move this back to the end after Gazelle updates golang.org/x/net to at least v0.26.0.
+# See https://github.com/bettercap/bettercap/issues/1106 for how this breaks Go 1.23 compatibility.
+load("@io_bazel_rules_go//tests:grpc_repos.bzl", "grpc_dependencies")
+
+grpc_dependencies()
+
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 
 gazelle_dependencies()
@@ -206,10 +212,6 @@ test_chdir_remote()
 load("@io_bazel_rules_go//tests/integration/popular_repos:popular_repos.bzl", "popular_repos")
 
 popular_repos()
-
-load("@io_bazel_rules_go//tests:grpc_repos.bzl", "grpc_dependencies")
-
-grpc_dependencies()
 
 local_repository(
     name = "runfiles_remote_test",
