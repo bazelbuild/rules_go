@@ -20,10 +20,10 @@ import (
 	"fmt"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"strconv"
 	"strings"
-	"io"
 )
 
 type ResolvePkgFunc func(importPath string) string
@@ -134,12 +134,18 @@ func (fp *FlatPackage) filterTestSuffix(files []string) (err error, testFiles []
 
 func (fp *FlatPackage) MoveTestFiles() *FlatPackage {
 	err, tgf, xtgf, gf := fp.filterTestSuffix(fp.GoFiles)
-
 	if err != nil {
 		return nil
 	}
+
 	fp.GoFiles = append(gf, tgf...)
-	fp.CompiledGoFiles = append(gf, tgf...)
+
+	err, ctgf, cxtgf, cgf := fp.filterTestSuffix(fp.CompiledGoFiles)
+	if err != nil {
+		return nil
+	}
+
+	fp.CompiledGoFiles = append(cgf, ctgf...)
 
 	if len(xtgf) == 0 {
 		return nil
@@ -160,7 +166,7 @@ func (fp *FlatPackage) MoveTestFiles() *FlatPackage {
 		Imports:         newImports,
 		Errors:          fp.Errors,
 		GoFiles:         append([]string{}, xtgf...),
-		CompiledGoFiles: append([]string{}, xtgf...),
+		CompiledGoFiles: append([]string{}, cxtgf...),
 		OtherFiles:      fp.OtherFiles,
 		ExportFile:      fp.ExportFile,
 		Standard:        fp.Standard,

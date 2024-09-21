@@ -4,18 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 	"testing"
+
 	"github.com/bazelbuild/rules_go/go/tools/bazel_testing"
 )
-
-type response struct {
-	Roots    []string `json:",omitempty"`
-	Packages []*FlatPackage
-}
 
 func TestMain(m *testing.M) {
 	bazel_testing.TestMain(m, bazel_testing.Args{
@@ -81,6 +78,29 @@ func main() {
 	fmt.Fprintln(os.Stderr, "Subdirectory Hello World!")
 }
 		`,
+		// Explicitly disable bzlmod which is enabled by default with bazel >=7.0.
+		// Remove this setup function when the test will be launched with bzlmod and
+		// the RULES_GO_REPO_NAME_FOR_TEST will be the canonical name of this rules_go module.
+		// This is required to match the stdlib label returned by the 'bazel query --consistent_labels',
+		// otherwise the gopackagesdriver will not return any stdlib packages.
+		SetUp: func() error {
+			f, err := os.OpenFile(".bazelrc", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
+			if err != nil {
+				return fmt.Errorf("can't open bazelrc file: %v", err)
+			}
+
+			_, err = fmt.Fprintf(f, "common --noexperimental_enable_bzlmod\n")
+			if err != nil {
+				_ = f.Close()
+				return fmt.Errorf("can't update bazelrc file: %v", err)
+			}
+
+			if err := f.Close(); err != nil {
+				return fmt.Errorf("can't close bazelrc file: %v", err)
+			}
+
+			return nil
+		},
 	})
 }
 
@@ -88,6 +108,33 @@ const (
 	osPkgID       = "@io_bazel_rules_go//stdlib:os"
 	bzlmodOsPkgID = "@@io_bazel_rules_go//stdlib:os"
 )
+
+func TestStdlib(t *testing.T) {
+	resp := runForTest(t, DriverRequest{}, ".", "std")
+
+	if len(resp.Packages) == 0 {
+		t.Fatal("Expected stdlib packages")
+	}
+
+	for _, pkg := range resp.Packages {
+		// net, plugin and user stdlib packages seem to have compiled files only for Linux.
+		if pkg.Name != "cgo" {
+			continue
+		}
+
+		var hasCompiledFiles bool
+		for _, x := range pkg.CompiledGoFiles {
+			if filepath.Ext(x) == "" {
+				hasCompiledFiles = true
+				break
+			}
+		}
+
+		if !hasCompiledFiles {
+			t.Errorf("%q stdlib package should have compiled files", pkg.Name)
+		}
+	}
+}
 
 func TestBaseFileLookup(t *testing.T) {
 	resp := runForTest(t, DriverRequest{}, ".", "file=hello.go")
@@ -255,13 +302,13 @@ func TestOverlay(t *testing.T) {
 	subhelloPath := path.Join(wd, "subhello/subhello.go")
 
 	expectedImportsPerFile := map[string][]string{
-		helloPath: []string{"fmt"},
+		helloPath:    []string{"fmt"},
 		subhelloPath: []string{"os", "encoding/json"},
 	}
 
-	overlayDriverRequest := DriverRequest {
-		Overlay: map[string][]byte {
-			helloPath: []byte (`
+	overlayDriverRequest := DriverRequest{
+		Overlay: map[string][]byte{
+			helloPath: []byte(`
 				package hello
 				import "fmt"
 				import "unknown/unknown-package"
@@ -269,7 +316,7 @@ func TestOverlay(t *testing.T) {
 					invalid code
 
 				}`),
-			subhelloPath: []byte (`
+			subhelloPath: []byte(`
 				package subhello
 				import "os"
 				import "encoding/json"
@@ -300,7 +347,6 @@ func TestOverlay(t *testing.T) {
 	expectSetEquality(t, expectedImportsPerFile[helloPath], helloPkgImportPaths, "hello imports")
 	expectSetEquality(t, expectedImportsPerFile[subhelloPath], subhelloPkgImportPaths, "subhello imports")
 }
-
 
 func runForTest(t *testing.T, driverRequest DriverRequest, relativeWorkingDir string, args ...string) driverResponse {
 	t.Helper()
