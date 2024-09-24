@@ -147,7 +147,7 @@ func (fp *FlatPackage) MoveTestFiles() *FlatPackage {
 
 	fp.CompiledGoFiles = append(cgf, ctgf...)
 
-	if len(xtgf) == 0 {
+	if len(xtgf) == 0 && len(cxtgf) == 0 {
 		return nil
 	}
 
