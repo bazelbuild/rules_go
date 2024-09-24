@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"path"
 	"path/filepath"
@@ -78,29 +77,6 @@ func main() {
 	fmt.Fprintln(os.Stderr, "Subdirectory Hello World!")
 }
 		`,
-		// Explicitly disable bzlmod which is enabled by default with bazel >=7.0.
-		// Remove this setup function when the test will be launched with bzlmod and
-		// the RULES_GO_REPO_NAME_FOR_TEST will be the canonical name of this rules_go module.
-		// This is required to match the stdlib label returned by the 'bazel query --consistent_labels',
-		// otherwise the gopackagesdriver will not return any stdlib packages.
-		SetUp: func() error {
-			f, err := os.OpenFile(".bazelrc", os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0644)
-			if err != nil {
-				return fmt.Errorf("can't open bazelrc file: %v", err)
-			}
-
-			_, err = fmt.Fprintf(f, "common --noexperimental_enable_bzlmod\n")
-			if err != nil {
-				_ = f.Close()
-				return fmt.Errorf("can't update bazelrc file: %v", err)
-			}
-
-			if err := f.Close(); err != nil {
-				return fmt.Errorf("can't close bazelrc file: %v", err)
-			}
-
-			return nil
-		},
 	})
 }
 
@@ -380,7 +356,7 @@ func runForTest(t *testing.T, driverRequest DriverRequest, relativeWorkingDir st
 		if !cut {
 			continue
 		}
-		if _, allowed := allowEnv[key]; !allowed {
+		if _, allowed := allowEnv[key]; !allowed && !strings.HasPrefix(key, "GOPACKAGES") {
 			os.Unsetenv(key)
 			oldEnv = append(oldEnv, key, value)
 		}
