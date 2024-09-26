@@ -508,12 +508,6 @@ def go_context(
         "GODEBUG": "winsymlink=0",
     }
 
-    # Path mapping can't map the values of environment variables, so we pass GOROOT to the action
-    # via an argument instead in builder_args. We need to drop it from the environment to get cache
-    # hits across different configurations since the stdlib path typically contains a Bazel
-    # configuration segment.
-    env_for_path_mapping = {k: v for k, v in env.items() if k != "GOROOT"}
-
     # The level of support is determined by the platform constraints in
     # //go/constraints/amd64.
     # See https://go.dev/wiki/MinimumRequirements#amd64
@@ -587,7 +581,11 @@ def go_context(
         coverage_enabled = ctx.configuration.coverage_enabled,
         coverage_instrumented = ctx.coverage_instrumented(),
         env = env,
-        env_for_path_mapping = env_for_path_mapping,
+        # Path mapping can't map the values of environment variables, so we pass GOROOT to the action
+        # via an argument instead in builder_args. We need to drop it from the environment to get cache
+        # hits across different configurations since the stdlib path typically contains a Bazel
+        # configuration segment.
+        env_for_path_mapping = {k: v for k, v in env.items() if k != "GOROOT"},
         label = ctx.label,
 
         # Action generators
