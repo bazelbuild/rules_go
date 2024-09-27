@@ -255,7 +255,7 @@ The root module can override certain aspects of the dependency resolution perfor
 
 [`replace` directives](https://go.dev/ref/mod#go-mod-file-replace) in `go.mod` can be used to replace particular or all versions of dependencies with other versions or entirely different modules.
 
-```go
+```
 replace(
     golang.org/x/net v1.2.3 => example.com/fork/net v1.4.5
     golang.org/x/mod => example.com/my/mod v1.4.5
