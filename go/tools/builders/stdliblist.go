@@ -161,7 +161,6 @@ func filterGoFiles(srcs []string, pathReplaceFn func(p string) string) []string 
 func flatPackageForStd(cloneBase string, pkg *goListPackage, pathReplaceFn func(p string) string) *flatPackage {
 	goFiles := absoluteSourcesPaths(cloneBase, pkg.Dir, pkg.GoFiles)
 	compiledGoFiles := absoluteSourcesPaths(cloneBase, pkg.Dir, pkg.CompiledGoFiles)
-
 	newPkg := &flatPackage{
 		ID:              stdlibPackageID(pkg.ImportPath),
 		Name:            pkg.Name,
