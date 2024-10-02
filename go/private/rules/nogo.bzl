@@ -18,7 +18,7 @@ load(
 )
 load(
     "//go/private:context.bzl",
-    "OPTIONAL_CPP_TOOLCHAIN",
+    "MAYBE_OPTIONAL_CPP_TOOLCHAIN",
     "go_context",
 )
 load(
@@ -111,7 +111,7 @@ _nogo = rule(
             default = "@bazel_tools//tools/allowlists/function_transition_allowlist",
         ),
     },
-    toolchains = [GO_TOOLCHAIN, OPTIONAL_CPP_TOOLCHAIN],
+    toolchains = [GO_TOOLCHAIN] + MAYBE_OPTIONAL_CPP_TOOLCHAIN,
     cfg = go_tool_transition,
 )
 
