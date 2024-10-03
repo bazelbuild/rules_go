@@ -257,7 +257,7 @@ rule.  Instead, it's referenced in the ``data`` field of GoArchive_.
 | The .go sources compiled into the archive. May have been generated or                            |
 | transformed with tools like cgo and cover.                                                       |
 +--------------------------------+-----------------------------------------------------------------+
-| :param:`runfiles`              | :type:`runfiles`                                           |
+| :param:`runfiles`              | :type:`runfiles`                                                |
 +--------------------------------+-----------------------------------------------------------------+
 | Data files that should be available at runtime to binaries and tests built                       |
 | from this archive.                                                                               |
