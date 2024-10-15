@@ -162,6 +162,33 @@ func (e *env) runCommandToFile(out, err io.Writer, args []string) error {
 	return runAndLogCommand(cmd, e.verbose)
 }
 
+func absLDLinker(argList []string) error {
+	extldIndex := -1
+	for i, arg := range argList {
+		if arg == "-extld" && i+1 < len(argList) {
+			extldIndex = i+1
+			break
+		}
+	}
+	if extldIndex < 0 {
+		// if we don't find extld just noop
+		return nil
+	}
+
+	err := os.Setenv("GO_CC", argList[extldIndex])
+	if err != nil {
+		return err
+	}
+
+	err = os.Setenv("GO_CC_ROOT", abs("."))
+	if err != nil {
+		return err
+	}
+
+	argList[extldIndex] = abs(os.Args[0])+" cc"
+	return nil
+}
+
 // absCCCompiler modifies CGO flags to workaround relative paths.
 // Because go is having its own sandbox, all CGO flags should use
 // absolute paths. However, CGO flags are embedded in the output

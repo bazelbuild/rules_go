@@ -57,6 +57,10 @@ func link(args []string) error {
 		return err
 	}
 
+	if err := absLDLinker(toolArgs); err != nil {
+		return err
+	}
+
 	// On Windows, take the absolute path of the output file and main file.
 	// This is needed on Windows because the relative path is frequently too long.
 	// os.Open on Windows converts absolute paths to some other path format with
