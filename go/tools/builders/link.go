@@ -57,10 +57,6 @@ func link(args []string) error {
 		return err
 	}
 
-	if err := absLDLinker(toolArgs); err != nil {
-		return err
-	}
-
 	// On Windows, take the absolute path of the output file and main file.
 	// This is needed on Windows because the relative path is frequently too long.
 	// os.Open on Windows converts absolute paths to some other path format with
@@ -145,6 +141,16 @@ func link(args []string) error {
 	}
 	goargs = append(goargs, "-o", *outFile)
 
+	// substitute `builder cc` for the linker with a script. unfortunately
+	// we can't just set an environment variable to `builder cc` because
+	// in `go tool link` the `linkerFlagSupported` call sites used to determine
+	// if a linker supports various flags all appear to use the first arg
+	// after splitting so the `cc` would be left off of `builder cc`
+	linkerCleanup, err := absLDLinker(toolArgs)
+	if err != nil {
+		return err
+	}
+	defer linkerCleanup()
 	// add in the unprocess pass through options
 	goargs = append(goargs, toolArgs...)
 	goargs = append(goargs, *main)

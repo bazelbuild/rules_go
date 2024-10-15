@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,12 +13,13 @@ import (
 func cc(args []string) error {
 	cc := os.Getenv("GO_CC")
 	if cc == "" {
-		errors.New("GO_CC environment variable not set")
+		log.Fatal("GO_CC environment variable not set")
 	}
 	ccroot := os.Getenv("GO_CC_ROOT")
 	if ccroot == "" {
-		errors.New("GO_CC_ROOT environment variable not set")
+		log.Fatal("GO_CC_ROOT environment variable not set")
 	}
+
 	normalized := []string{cc}
 	normalized = append(normalized, args...)
 	transformArgs(normalized, cgoAbsEnvFlags, func(s string) string {

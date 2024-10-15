@@ -162,7 +162,39 @@ func (e *env) runCommandToFile(out, err io.Writer, args []string) error {
 	return runAndLogCommand(cmd, e.verbose)
 }
 
-func absLDLinker(argList []string) error {
+func writeAbsLDWrapper(linker string) (filename string, err error) {
+	var f *os.File
+	f, err = os.CreateTemp("", "builder-cc.sh")
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if err != nil && f != nil {
+			_ = f.Close()
+			_ = os.Remove(f.Name())
+		}
+	}()
+
+	script := fmt.Sprintf(`#!/bin/sh
+GO_CC="%s" GO_CC_ROOT="%s" exec %s cc "$@"`, linker, abs("."), abs(os.Args[0]))
+
+	if _, err := f.Write([]byte(script)); err != nil {
+		return "", err
+	}
+
+	if err := f.Close(); err != nil {
+		return "", err
+	}
+
+	if err := os.Chmod(f.Name(), 0o500); err != nil {
+		return "", err
+	}
+
+	return f.Name(), nil
+}
+
+func absLDLinker(argList []string) (func(), error) {
 	extldIndex := -1
 	for i, arg := range argList {
 		if arg == "-extld" && i+1 < len(argList) {
@@ -171,22 +203,17 @@ func absLDLinker(argList []string) error {
 		}
 	}
 	if extldIndex < 0 {
-		// if we don't find extld just noop
-		return nil
+		// if we don't find extld just return
+		// a noop cleanup function
+		return func(){}, nil
 	}
 
-	err := os.Setenv("GO_CC", argList[extldIndex])
+	filename, err := writeAbsLDWrapper(argList[extldIndex])
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	err = os.Setenv("GO_CC_ROOT", abs("."))
-	if err != nil {
-		return err
-	}
-
-	argList[extldIndex] = abs(os.Args[0])+" cc"
-	return nil
+	argList[extldIndex] = filename
+	return func() { _ = os.Remove(filename)}, nil
 }
 
 // absCCCompiler modifies CGO flags to workaround relative paths.
