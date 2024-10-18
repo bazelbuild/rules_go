@@ -146,7 +146,7 @@ func link(args []string) error {
 	// in `go tool link` the `linkerFlagSupported` call sites used to determine
 	// if a linker supports various flags all appear to use the first arg
 	// after splitting so the `cc` would be left off of `builder cc`
-	linkerCleanup, err := absLDLinker(toolArgs)
+	linkerCleanup, err := absCCLinker(toolArgs)
 	if err != nil {
 		return err
 	}
