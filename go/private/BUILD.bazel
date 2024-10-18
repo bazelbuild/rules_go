@@ -215,4 +215,5 @@ config_setting(
     flag_values = {
         "//go/config:pure": "True",
     },
+    visibility = ["//:__pkg__"],
 )
