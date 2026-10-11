@@ -106,7 +106,9 @@ func TestCompileErrorPaths(t *testing.T) {
 		// relative to the work directory.
 		"cgofile/c.go:7:2: declared and not used: unusedInCgoFile",
 	} {
-		if !regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(want) + `$`).MatchString(stderr) {
+		// The compiler separates path elements with the host's separator.
+		pattern := strings.ReplaceAll(regexp.QuoteMeta(want), "/", `[/\\]`)
+		if !regexp.MustCompile(`(?m)^` + pattern + `$`).MatchString(stderr) {
 			t.Errorf("compile errors do not contain the line %q", want)
 		}
 	}
