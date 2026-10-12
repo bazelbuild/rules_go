@@ -70,8 +70,9 @@ func Hello() string { return "hello" }
 	})
 }
 
-// A panic exits with the same code as a nogo run with findings. The crash must
-// fail the build with its output instead of only as a missing .facts output.
+// A panic exits with status 2, which must not be mistaken for a nogo run with
+// findings. The crash must fail the build with its output instead of only as a
+// missing .facts output.
 func TestCrashIsReported(t *testing.T) {
 	err := bazel_testing.RunBazel("build", "//:hello")
 	if err == nil {

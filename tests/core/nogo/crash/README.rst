@@ -11,5 +11,5 @@ crash_test
 ----------
 Verifies that a nogo binary that panics before running any analyzer (here, in
 an analyzer's ``init``) fails the build with the panic message. The panic exits
-with the same code as a run with findings, and was previously reported only as
-a missing ``.facts`` output.
+with status 2, which nogo used to also return for a run with findings, so it was
+reported only as a missing ``.facts`` output.
