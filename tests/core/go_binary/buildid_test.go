@@ -105,7 +105,7 @@ func TestContentBuildID(t *testing.T) {
 	pure := build(t, "//src:pure")
 	cgo := build(t, "//src:cgo")
 	for name, ids := range map[string]buildIDs{"pure": pure, "cgo": cgo} {
-		if _, err := hex.DecodeString(ids.goID); err != nil || len(ids.goID) != 40 || ids.goID == strings.Repeat("0", 40) {
+		if !isContentBuildID(ids.goID) {
 			t.Errorf("%s: Go build ID %q is not a content hash", name, ids.goID)
 		}
 		if ids.gnuID == "" || strings.Trim(ids.gnuID, "0") == "" {
@@ -139,9 +139,9 @@ func TestCrossCompiledMachO(t *testing.T) {
 	if i < 0 {
 		t.Fatal("Go build ID not found")
 	}
-	goID := string(data[i+len(prefix):][:40])
-	if goID == strings.Repeat("0", 40) {
-		t.Fatal("Go build ID placeholder was not replaced")
+	goID := string(data[i+len(prefix):][:83])
+	if !isContentBuildID(goID) {
+		t.Fatalf("Go build ID %q is not a content hash", goID)
 	}
 
 	f, err := macho.NewFile(bytes.NewReader(data))
@@ -201,6 +201,21 @@ func loadCommand(f *macho.File, cmd uint32) []byte {
 		}
 	}
 	return nil
+}
+
+// isContentBuildID reports whether id is four 20-character hex chunks separated
+// by '/', other than the placeholder.
+func isContentBuildID(id string) bool {
+	parts := strings.Split(id, "/")
+	if len(parts) != 4 {
+		return false
+	}
+	for _, p := range parts {
+		if _, err := hex.DecodeString(p); err != nil || len(p) != 20 {
+			return false
+		}
+	}
+	return strings.Trim(id, "0/") != ""
 }
 
 func noteDesc(t *testing.T, f *elf.File, name string) []byte {

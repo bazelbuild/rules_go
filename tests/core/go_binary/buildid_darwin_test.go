@@ -93,7 +93,8 @@ func build(t *testing.T, target string) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if bytes.Contains(data, []byte(strings.Repeat("0", 40))) {
+	placeholder := strings.Repeat(strings.Repeat("0", 20)+"/", 3) + strings.Repeat("0", 20)
+	if bytes.Contains(data, []byte(placeholder)) {
 		t.Errorf("%s: Go build ID placeholder was not replaced", target)
 	}
 	f, err := macho.Open(path)

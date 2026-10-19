@@ -22,15 +22,22 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"strings"
 )
 
 // buildIDPlaceholder makes the linker emit the Go and host build IDs, which
 // setContentBuildID overwrites in place once the binary is linked. Its length
-// matches the hex-encoded ID written over it.
-var buildIDPlaceholder = strings.Repeat("0", 2*buildIDSize)
+// matches the Go build ID written over it.
+var buildIDPlaceholder = goBuildID([sha256.Size]byte{})
 
-const buildIDSize = 20
+// goBuildID formats sum in the shape go build uses for binaries, four
+// 20-character chunks separated by '/', which some tools require. The chunks
+// are slices of the same hash, not separate action and content IDs, and the
+// hash is repeated because it is shorter than the 80 characters needed.
+func goBuildID(sum [sha256.Size]byte) string {
+	h := hex.EncodeToString(sum[:])
+	s := h + h
+	return s[0:20] + "/" + s[20:40] + "/" + s[40:60] + "/" + s[60:80]
+}
 
 // ELF note sections holding the Go and GNU build IDs, as written by cmd/link:
 // https://cs.opensource.google/go/go/+/refs/tags/go1.26.7:src/cmd/link/internal/ld/elf.go;l=938-963
@@ -83,7 +90,7 @@ func setELFBuildID(path string, data []byte, sum [sha256.Size]byte) error {
 		return nil
 	}
 
-	patches := map[int64][]byte{goStart: []byte(hex.EncodeToString(sum[:buildIDSize]))}
+	patches := map[int64][]byte{goStart: []byte(goBuildID(sum))}
 	// The GNU note is missing when the external linker does not support --build-id.
 	if start, end, ok := noteDesc(f, elfGNUBuildIDSection); ok {
 		desc := make([]byte, end-start)
@@ -109,7 +116,7 @@ func setMachOBuildID(path string, data []byte, sum [sha256.Size]byte) error {
 		return nil
 	}
 
-	patches := map[int64][]byte{int64(i + len(goBuildPrefix)): []byte(hex.EncodeToString(sum[:buildIDSize]))}
+	patches := map[int64][]byte{int64(i + len(goBuildPrefix)): []byte(goBuildID(sum))}
 	if off, ok := machoUUIDOffset(f); ok {
 		uuid := make([]byte, 16)
 		copy(uuid, sum[:])
