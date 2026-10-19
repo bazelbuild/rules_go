@@ -72,6 +72,14 @@ func TestParseCoverProfile(t *testing.T) {
 			want:    map[string][]int{"a.go": {1, 2}},
 		},
 		{
+			desc: "a block without statements covers nothing",
+			profile: "mode: set\n" +
+				"a.go:3.24,3.45 1 0\n" +
+				"a.go:5.36,5.37 0 0\n" +
+				"b.go:1.30,1.31 0 0\n",
+			want: map[string][]int{"a.go": {3}},
+		},
+		{
 			desc:    "an empty profile has no records",
 			profile: "",
 			want:    map[string][]int{},
