@@ -396,15 +396,12 @@ func TestStdlibSharesConfigurationWithTarget(t *testing.T) {
 // including the one nogo is built against, is built in the configuration of
 // the tool itself.
 func TestStdlibSharesConfigurationWithExecTools(t *testing.T) {
-	toolHashes := configHashes(t, "deps(//:tool_user) intersect //:plain")
-	if len(toolHashes) != 1 {
-		t.Fatalf("expected //:tool_user to depend on //:plain in exactly one configuration, got %d", len(toolHashes))
-	}
+	execHash := execToolConfig(t)
 	stdlibHashes := configHashes(t, "deps(//:tool_user) intersect @io_bazel_rules_go//:stdlib")
 	var diffs []string
 	for _, hash := range stdlibHashes {
-		if hash != toolHashes[0] {
-			diffs = append(diffs, strings.Join(getGoOptions(t, toolHashes[0], hash), ", "))
+		if hash != execHash {
+			diffs = append(diffs, strings.Join(getGoOptions(t, execHash, hash), ", "))
 		}
 	}
 	if len(diffs) != 0 {
@@ -417,23 +414,15 @@ func TestStdlibSharesConfigurationWithExecTools(t *testing.T) {
 // settings in effect, every target reachable from a Go binary or from a tool
 // built for the exec configuration is built in one of exactly three
 // configurations: the target configuration, the exec configuration and the
-// configuration of nogo, which differs from the exec configuration only in the
-// settings that keep nogo from analyzing its own dependencies.
+// configuration of nogo, which differs from the exec configuration only in
+// bootstrap_nogo (see TestToolConfigurationDiffersFromExecOnlyInBootstrapNogo).
 func TestNoConfigurationForksByDefault(t *testing.T) {
 	targetHashes := configHashes(t, "config(//:plain, target)")
 	if len(targetHashes) != 1 {
 		t.Fatalf("expected //:plain to be built in exactly one target configuration, got %d", len(targetHashes))
 	}
-	execHashes := configHashes(t, "deps(//:tool_user) intersect //:plain")
-	if len(execHashes) != 1 {
-		t.Fatalf("expected //:tool_user to depend on //:plain in exactly one configuration, got %d", len(execHashes))
-	}
-	nogoHashes := configHashes(t, "deps(//:plain) intersect //:my_nogo_actual")
-	if len(nogoHashes) != 1 {
-		t.Fatalf("expected //:plain to depend on //:my_nogo_actual in exactly one configuration, got %d", len(nogoHashes))
-	}
-	target, exec := targetHashes[0], execHashes[0]
-	expected := map[string]bool{target: true, exec: true, nogoHashes[0]: true, nullConfig: true}
+	target, exec := targetHashes[0], execToolConfig(t)
+	expected := map[string]bool{target: true, exec: true, nogoConfig(t): true, nullConfig: true}
 	// Bazel analyzes constraint values and other targets that don't read any
 	// configuration in a configuration of their own.
 	for _, hash := range configHashes(t, "kind(constraint_value, deps(//:plain))") {
@@ -468,6 +457,43 @@ func TestNoConfigurationForksByDefault(t *testing.T) {
 		t.Errorf("%d targets are built in a configuration that differs from the %s configuration in %s: %s%s",
 			len(labels[hash]), baselineName, diff, strings.Join(examples, ", "), more)
 	}
+}
+
+// TestToolConfigurationDiffersFromExecOnlyInBootstrapNogo verifies that nogo,
+// which is built with go_tool_transition, differs from a plain exec tool in no
+// rules_go setting but bootstrap_nogo, the one that keeps it from analyzing
+// itself. Any further difference, such as request_nogo, forks the
+// configuration of everything the tool resolves in it, e.g. the C++ toolchain.
+// Options outside rules_go's settings are not compared.
+func TestToolConfigurationDiffersFromExecOnlyInBootstrapNogo(t *testing.T) {
+	diffs := getGoOptions(t, execToolConfig(t), nogoConfig(t))
+	if len(diffs) != 1 || !strings.HasPrefix(diffs[0], "private:bootstrap_nogo=") {
+		t.Errorf("nogo differs from plain exec tools in %s, want only private:bootstrap_nogo",
+			strings.Join(diffs, ", "))
+	}
+}
+
+// execToolConfig returns the hash of the configuration of a plain exec tool,
+// i.e. what //:tool_user depends on //:plain in.
+func execToolConfig(t *testing.T) string {
+	return singleConfigHash(t, "deps(//:tool_user) intersect //:plain",
+		"expected //:tool_user to depend on //:plain in exactly one configuration, got %d")
+}
+
+// nogoConfig returns the hash of the configuration of nogo.
+func nogoConfig(t *testing.T) string {
+	return singleConfigHash(t, "deps(//:plain) intersect //:my_nogo_actual",
+		"expected //:plain to depend on //:my_nogo_actual in exactly one configuration, got %d")
+}
+
+// singleConfigHash returns the configuration hash of the targets matched by
+// query, failing the test with the format message unless there is exactly one.
+func singleConfigHash(t *testing.T, query, format string) string {
+	hashes := configHashes(t, query)
+	if len(hashes) != 1 {
+		t.Fatalf(format, len(hashes))
+	}
+	return hashes[0]
 }
 
 // configHashes returns the hashes of the configurations of the targets matched

@@ -171,9 +171,8 @@ bool_setting(
     visibility = ["//visibility:public"],
 )
 
-# Defaults to True, meaning nogo runs everywhere except when transitioned to
-# False to prevent nogo from running on nogo's own dependencies (circular dep
-# guard).
+# Defaults to True. No rules_go transition changes it; setting it to False on
+# the command line turns nogo off everywhere.
 bool_setting(
     name = "request_nogo",
     build_setting_default = True,
@@ -182,9 +181,9 @@ bool_setting(
 )
 
 # Controls whether nogo alias will reference a noop or the configured nogo.
-# True (the default) means nogo runs. go_tool_transition and _reset_transition
-# both reset this to False, which prevents nogo from running on nogo's own
-# dependencies (circular dep guard) and on other tool targets.
+# True (the default) means nogo runs. bootstrap_nogo, which go_tool_transition
+# sets when building nogo and other Go tools, makes this False, so nogo's own
+# dependencies resolve the nogo alias to a noop (circular dep guard).
 config_setting(
     name = "nogo_active",
     flag_values = {
