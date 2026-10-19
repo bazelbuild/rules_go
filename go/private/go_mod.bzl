@@ -40,8 +40,7 @@ def version_from_go_work(module_ctx, go_work_label):
 
 def _version_from_go_file(module_ctx, file_label, expected_filename, default_version):
     _check_filename(file_label.name, expected_filename)
-    file_path = module_ctx.path(file_label)
-    file_content = module_ctx.read(file_path)
+    file_content = module_ctx.read(file_label)
 
     state = {
         "toolchain": None,
@@ -50,28 +49,28 @@ def _version_from_go_file(module_ctx, file_label, expected_filename, default_ver
 
     current_directive = None
     for line_no, line in enumerate(file_content.splitlines(), 1):
-        tokens, _ = _tokenize_line(line, file_path, line_no)
+        tokens, _ = _tokenize_line(line, file_label, line_no)
         if not tokens:
             continue
 
         if not current_directive:
             if tokens[0] == "go":
-                _validate_go_version(file_path, state, tokens, line_no)
+                _validate_go_version(file_label, state, tokens, line_no)
                 state["go"] = tokens[1]
 
             if tokens[0] == "toolchain":
-                _validate_toolchain_version(file_path, state, tokens, line_no)
+                _validate_toolchain_version(file_label, state, tokens, line_no)
                 state["toolchain"] = tokens[1][len("go"):].strip()
 
             if tokens[1] == "(":
                 current_directive = tokens[0]
                 if len(tokens) > 2:
-                    fail("{}:{}: unexpected token '{}' after '('".format(file_path, line_no, tokens[2]))
+                    fail("{}:{}: unexpected token '{}' after '('".format(file_label, line_no, tokens[2]))
                 continue
         elif tokens[0] == ")":
             current_directive = None
             if len(tokens) > 1:
-                fail("{}:{}: unexpected token '{}' after ')'".format(file_path, line_no, tokens[1]))
+                fail("{}:{}: unexpected token '{}' after ')'".format(file_label, line_no, tokens[1]))
             continue
 
     version = state["toolchain"]
