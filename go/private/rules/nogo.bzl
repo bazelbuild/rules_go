@@ -121,14 +121,6 @@ _nogo = go_rule(
 
 def nogo(name, visibility = None, **kwargs):
     actual_name = "%s_actual" % name
-    native.alias(
-        name = name,
-        actual = select({
-            str(Label("//go/private:nogo_active")): actual_name,
-            "//conditions:default": Label("//:default_nogo"),
-        }),
-        visibility = visibility,
-    )
 
     # With --use_top_level_targets_for_symlinks, which is enabled by default in
     # Bazel 6.0.0, self-transitioning top-level targets prevent the bazel-bin
@@ -136,9 +128,23 @@ def nogo(name, visibility = None, **kwargs):
     # type, their presence would trigger this behavior. Work around this by
     # excluding them from wildcards - they are still transitively built as a
     # tool dependency of every Go target.
+    #
+    # The alias needs the tag too: a wildcard that matches it builds the nogo
+    # binary anyway, in a configuration derived from the target configuration
+    # rather than the exec configuration Go targets build it in.
     kwargs.setdefault("tags", [])
     if "manual" not in kwargs["tags"]:
         kwargs["tags"].append("manual")
+
+    native.alias(
+        name = name,
+        actual = select({
+            str(Label("//go/private:nogo_active")): actual_name,
+            "//conditions:default": Label("//:default_nogo"),
+        }),
+        tags = kwargs["tags"],
+        visibility = visibility,
+    )
 
     _nogo(
         name = actual_name,
