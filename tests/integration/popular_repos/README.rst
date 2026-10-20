@@ -223,7 +223,6 @@ ______________________
 
 This runs tests from the repository `github.com/golang/glog <https://github.com/golang/glog>`_
 
-* @com_github_golang_glog//:glog_test
 * @com_github_golang_glog//internal/logsink:logsink_test
 
 

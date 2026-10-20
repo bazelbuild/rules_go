@@ -212,6 +212,13 @@ POPULAR_REPOS = [
         commit = "23def4e6c14b4da8ac2ed8007337bc5eb5007998",
         excludes = [
             "internal/stackdump:stackdump_test", # Interpolates the source path into a regexp, which the "++" in canonical repo names breaks
+            # TestRollover creates its log file on the real clock and then
+            # expects a write at 2024-12-23 01:23:46.5 on a fake clock to
+            # rotate it. glog only rotates a file if the current time is more
+            # than a second after the file's creation or in a different second
+            # of the minute, so the test fails whenever it starts in second 46
+            # of a minute.
+            ":glog_test",
         ],
     ),
 
