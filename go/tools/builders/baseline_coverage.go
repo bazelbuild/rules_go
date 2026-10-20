@@ -250,8 +250,8 @@ var coverLinePattern = regexp.MustCompile(`^(?P<path>.+):(?P<startLine>\d+)\.(?P
 //
 //	name.go:startLine.startCol,endLine.endCol numStmt count
 //
-// Every line a block spans counts as coverable, matching how a measured
-// profile is rendered as LCOV after a coverage run.
+// Every line a block with statements spans counts as coverable, matching how a
+// measured profile is rendered as LCOV after a coverage run.
 func parseCoverProfile(profile string) (map[string][]int, error) {
 	seen := make(map[string]map[int]bool)
 	// Read by lines the way bzltestutil does, so that a trailing carriage
@@ -282,6 +282,15 @@ func parseCoverProfile(profile string) (map[string][]int, error) {
 		}
 		if startLine <= 0 || endLine < startLine {
 			return nil, fmt.Errorf("nonsensical block span %d-%d in coverage profile line %q", startLine, endLine, line)
+		}
+		numStmt, err := strconv.Atoi(m[6])
+		if err != nil {
+			return nil, fmt.Errorf("malformed statement count in coverage profile line %q: %v", line, err)
+		}
+		// Blocks without statements, such as empty function bodies, have
+		// nothing to cover.
+		if numStmt == 0 {
+			continue
 		}
 		if seen[name] == nil {
 			seen[name] = make(map[int]bool)

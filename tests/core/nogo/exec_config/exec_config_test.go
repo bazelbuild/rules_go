@@ -66,8 +66,8 @@ go_sdk.nogo(nogo = "//:my_nogo")
 // Under --incompatible_exclude_starlark_flags_from_exec_config, that flag would
 // be reset to its default across the cfg = "exec" edge into nogo's
 // dependencies, re-activating nogo on them and reintroducing the cycle. Marking
-// bootstrap_nogo (and request_nogo) with scope = "universal" exempts them from
-// that reset, which is what this test guards.
+// bootstrap_nogo with scope = "universal" exempts it from that reset, which is
+// what this test guards.
 func TestNoCycleWithExcludedStarlarkFlags(t *testing.T) {
 	const flag = "--incompatible_exclude_starlark_flags_from_exec_config"
 	err := bazel_testing.RunBazel("build", "//:lib", flag)
