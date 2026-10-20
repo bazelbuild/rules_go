@@ -160,7 +160,7 @@ The Go rules are tested and supported on the following host platforms:
 Users have reported success on several other platforms, but the rules are
 only tested on those listed above.
 
-Note: Since version v0.51.0, rules_go requires Bazel ≥ 6.5.0 to work.
+Note: Since version v0.65.0, rules_go requires Bazel ≥ 7.7.0 to work.
 
 rules_go requires a Go SDK ≥ 1.20.
 

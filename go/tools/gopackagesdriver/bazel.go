@@ -29,7 +29,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -44,7 +43,6 @@ type Bazel struct {
 	bazelCommonFlags      []string
 	bazelStartupFlags     []string
 	info                  map[string]string
-	version               bazelVersion
 }
 
 // Minimal BEP structs to access the build outputs
@@ -81,12 +79,6 @@ func (b *Bazel) fillInfo(ctx context.Context) error {
 	for scanner.Scan() {
 		parts := strings.SplitN(strings.TrimSpace(scanner.Text()), ":", 2)
 		b.info[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
-	}
-	release := strings.Split(b.info["release"], " ")
-	if len(release) == 2 {
-		if version, ok := parseBazelVersion(release[1]); ok {
-			b.version = version
-		}
 	}
 	return nil
 }
@@ -214,42 +206,4 @@ func isAllowedBazelError(err error) bool {
 	default:
 		return false
 	}
-}
-
-type bazelVersion [3]int
-
-func parseBazelVersion(raw string) (bazelVersion, bool) {
-	parts := strings.Split(raw, ".")
-	if len(parts) != 3 {
-		return [3]int{}, false
-	}
-	var version [3]int
-	for i, part := range parts {
-		v, err := strconv.Atoi(part)
-		if err != nil {
-			return [3]int{}, false
-		}
-		version[i] = v
-	}
-	return version, true
-}
-
-func (a bazelVersion) compare(b bazelVersion) int {
-	for i := 0; i < len(a); i++ {
-		if c := a[i] - b[i]; c != 0 {
-			return c
-		}
-	}
-	return 0
-}
-
-// isAtLeast returns true if a.compare(b) >= 0 (that is, if a is greater than
-// or equal to be) or if a is the zero value.
-//
-// Development versions of Bazel do not have valid version strings, not even a
-// prerelease, so parseBazelVersion fails and returns the zero value. If we
-// have such a version, we assume it's newer than whatever we're comparing
-// it with.
-func (a bazelVersion) isAtLeast(b bazelVersion) bool {
-	return a.compare(b) >= 0 || a == bazelVersion{}
 }

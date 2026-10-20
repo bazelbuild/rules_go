@@ -117,13 +117,10 @@ def go_rule(implementation, attrs = {}, fragments = [], toolchains = [], **kwarg
     )
 
 # cgo requires a gcc/clang style compiler.
-# We use a denylist instead of an allowlist:
-# - Bazel's auto-detected toolchains used to set the compiler name to "compiler"
-#   for gcc (fixed in 6.0.0), which defeats the purpose of an allowlist.
-# - The compiler name field is free-form and user-defined, so we would have to
-#   provide a way to override this list.
-# TODO: Convert to a denylist once we can assume Bazel 6.0.0 or later and have a
-#       way for users to extend the list.
+# We use a denylist instead of an allowlist because the compiler name field is
+# free-form and user-defined, so we would have to provide a way to override
+# this list.
+# TODO: Convert to an allowlist once there is a way for users to extend it.
 _UNSUPPORTED_C_COMPILERS = {
     "msvc-cl": None,
     "clang-cl": None,

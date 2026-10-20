@@ -126,23 +126,10 @@ def emit_link(
     if go.mode.linkmode == LINKMODE_PLUGIN:
         tool_args.add("-pluginpath", archive.data.importpath)
 
-    # TODO(zbarsky): Bazel versions older than 7.2.0 do not properly deduplicate this dep
-    # Can replace with the following once we support Bazel 7.2.0+ only:
-    #    if go.coverage_enabled and go.coverdata:
-    #        test_archives = list(test_archives) + [go.coverdata.data]
-    #    arcs = depset(test_archives, transitive = [d.transitive for d in archive.direct])
-
-    if go.coverage_enabled and go.coverdata:
-        potentially_duplicated_arcs = depset(test_archives + [go.coverdata.data], transitive = [d.transitive for d in archive.direct]).to_list()
-        importmaps = {}
-        arcs = []
-        for arc in potentially_duplicated_arcs:
-            if arc.importmap in importmaps:
-                continue
-            importmaps[arc.importmap] = True
-            arcs.append(arc)
-    else:
-        arcs = depset(test_archives, transitive = [d.transitive for d in archive.direct])
+    arcs = depset(
+        test_archives + ([go.coverdata.data] if go.coverage_enabled and go.coverdata else []),
+        transitive = [d.transitive for d in archive.direct],
+    )
 
     all_archive_data = depset(test_archives, transitive = [archive.transitive])
     buildinfo_link_inputs = depset(

@@ -37,7 +37,6 @@ build:windows --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_min
 # other modules, not within the module itself.
 build:windows --host_platform=//go/toolchain:windows_amd64_cgo
 build:windows --platforms=//go/toolchain:windows_amd64_cgo
-build:windows --incompatible_enable_cc_toolchain_resolution
 
 build:check --all_incompatible_changes
 
@@ -50,7 +49,6 @@ test:ci --test_strategy=standalone
 
 # Incompatible flags to test in a dedicated CI pipeline.
 build:incompatible --incompatible_load_proto_rules_from_bzl
-build:incompatible --incompatible_enable_cc_toolchain_resolution
 build:incompatible --incompatible_config_setting_private_default_visibility
 build:incompatible --incompatible_enforce_config_setting_visibility
 build:incompatible --incompatible_disallow_empty_glob
@@ -62,4 +60,4 @@ build:incompatible --nolegacy_external_runfiles
 # Bazel 9, so neither flag can be enabled here. The bcr_tests_proto CI task
 # covers proto toolchain resolution in the meantime.
 # Also enable all incompatible flags in go_bazel_test by default.
-test:incompatible --test_env=GO_BAZEL_TEST_BAZELFLAGS='--incompatible_disallow_empty_glob --incompatible_load_proto_rules_from_bzl --incompatible_enable_cc_toolchain_resolution --incompatible_config_setting_private_default_visibility --incompatible_enforce_config_setting_visibility --incompatible_disable_starlark_host_transitions --nolegacy_external_runfiles'
+test:incompatible --test_env=GO_BAZEL_TEST_BAZELFLAGS='--incompatible_disallow_empty_glob --incompatible_load_proto_rules_from_bzl --incompatible_config_setting_private_default_visibility --incompatible_enforce_config_setting_visibility --incompatible_disable_starlark_host_transitions --nolegacy_external_runfiles'
