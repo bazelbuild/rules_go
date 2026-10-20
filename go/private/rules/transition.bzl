@@ -183,12 +183,8 @@ go_transition = transition(
 # this so that their configurations differ from the default one in as few
 # settings as possible, as each difference forks the configuration of
 # everything that is resolved in it, e.g. the C++ toolchain.
-_common_reset_transition_dict = dict({
-    # Not False: bootstrap_nogo already keeps nogo from running for tools, and
-    # a further difference from the default would give them a configuration of
-    # their own, along with everything they resolve in it, e.g. the C++
-    # toolchain.
-    "//go/private:request_nogo": True,
+_reset_transition_dict = dict({
+    "//go/private:bootstrap_nogo": False,
     "//go/config:static": False,
     "//go/config:msan": False,
     "//go/config:race": False,
@@ -198,12 +194,6 @@ _common_reset_transition_dict = dict({
     "//go/config:tags": [],
     "//go/config:pgoprofile": Label("//go/config:empty"),
 }, **{setting: "" for setting in _SETTING_KEY_TO_ORIGINAL_SETTING_KEY.values()})
-
-# The defaults plus bootstrap_nogo, the only setting with a tool value: it
-# keeps nogo from running on nogo's own dependencies.
-_reset_transition_dict = dict(_common_reset_transition_dict, **{
-    "//go/private:bootstrap_nogo": True,
-})
 
 _reset_transition_keys = sorted(_reset_transition_dict.keys())
 
@@ -234,6 +224,10 @@ def _go_tool_transition_impl(settings, _attr):
     new_settings = dict(settings, **_reset_transition_dict)
     for key in TOOL_INHERITED_SETTING_KEYS:
         new_settings[key] = _setting_before_go_transition(settings, key)
+
+    # Keeps nogo from running on nogo's own dependencies, which would be a
+    # dependency cycle.
+    new_settings["//go/private:bootstrap_nogo"] = True
     return new_settings
 
 go_tool_transition = transition(
@@ -256,12 +250,7 @@ def _non_go_tool_transition_impl(settings, _attr):
     Examples: This transition is applied to attributes referencing proto_library
     targets or protoc directly.
     """
-    settings = dict(settings, **_reset_transition_dict)
-
-    # Non-Go tools don't run nogo, so use the default value rather than the
-    # tool value to share the configuration of plain exec tools.
-    settings["//go/private:bootstrap_nogo"] = False
-    return settings
+    return dict(settings, **_reset_transition_dict)
 
 non_go_tool_transition = transition(
     implementation = _non_go_tool_transition_impl,
@@ -282,11 +271,6 @@ def _go_stdlib_transition_impl(settings, _attr):
         if label not in _stdlib_keep_keys:
             settings[label] = value
     settings["//go/config:tags"] = [t for t in settings["//go/config:tags"] if t in _TAG_AFFECTS_STDLIB]
-
-    # The standard library doesn't run nogo, so use the default value rather
-    # than the tool value to share the configuration of both regular targets
-    # and plain exec tools.
-    settings["//go/private:bootstrap_nogo"] = False
     settings["//command_line_option:collect_code_coverage"] = False
     return settings
 

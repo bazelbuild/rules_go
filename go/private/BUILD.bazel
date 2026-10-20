@@ -162,8 +162,8 @@ bzl_library(
     ],
 )
 
-# Usually false. This is only true when we are building nogo itself in which
-# because that rule uses an incoming transition to switch this to true.
+# Usually false. go_tool_transition sets this to true when building nogo and
+# other Go tools.
 bool_setting(
     name = "bootstrap_nogo",
     build_setting_default = False,
@@ -171,24 +171,13 @@ bool_setting(
     visibility = ["//visibility:public"],
 )
 
-# Defaults to True. No rules_go transition changes it; setting it to False on
-# the command line turns nogo off everywhere.
-bool_setting(
-    name = "request_nogo",
-    build_setting_default = True,
-    scope = "universal",
-    visibility = ["//visibility:public"],
-)
-
 # Controls whether nogo alias will reference a noop or the configured nogo.
-# True (the default) means nogo runs. bootstrap_nogo, which go_tool_transition
-# sets when building nogo and other Go tools, makes this False, so nogo's own
-# dependencies resolve the nogo alias to a noop (circular dep guard).
+# bootstrap_nogo makes this False, so nogo's own dependencies resolve the nogo
+# alias to a noop (circular dep guard).
 config_setting(
     name = "nogo_active",
     flag_values = {
         ":bootstrap_nogo": "False",
-        ":request_nogo": "True",
     },
     visibility = ["//visibility:public"],
 )

@@ -462,8 +462,8 @@ func TestNoConfigurationForksByDefault(t *testing.T) {
 // TestToolConfigurationDiffersFromExecOnlyInBootstrapNogo verifies that nogo,
 // which is built with go_tool_transition, differs from a plain exec tool in no
 // rules_go setting but bootstrap_nogo, the one that keeps it from analyzing
-// itself. Any further difference, such as request_nogo, forks the
-// configuration of everything the tool resolves in it, e.g. the C++ toolchain.
+// itself. Any further difference forks the configuration of everything the
+// tool resolves in it, e.g. the C++ toolchain.
 // Options outside rules_go's settings are not compared.
 func TestToolConfigurationDiffersFromExecOnlyInBootstrapNogo(t *testing.T) {
 	diffs := getGoOptions(t, execToolConfig(t), nogoConfig(t))
