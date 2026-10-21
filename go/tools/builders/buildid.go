@@ -21,6 +21,7 @@ import (
 	"debug/macho"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -69,24 +70,43 @@ func hasContentBuildID(goos string) bool {
 // reproducible. Binaries without the placeholder, e.g. built with -buildid in
 // gc_linkopts, are left untouched.
 func setContentBuildID(path string) error {
-	data, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	sum := sha256.Sum256(data)
-	if bytes.HasPrefix(data, []byte(elf.ELFMAG)) {
-		return setELFBuildID(path, data, sum)
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return err
 	}
-	return setMachOBuildID(path, data, sum)
+	var sum [sha256.Size]byte
+	h.Sum(sum[:0])
+
+	var magic [len(elf.ELFMAG)]byte
+	if _, err := f.ReadAt(magic[:], 0); err != nil {
+		return err
+	}
+	if string(magic[:]) == elf.ELFMAG {
+		return setELFBuildID(path, f, sum)
+	}
+	return setMachOBuildID(path, f, sum)
 }
 
-func setELFBuildID(path string, data []byte, sum [sha256.Size]byte) error {
-	f, err := elf.NewFile(bytes.NewReader(data))
+func setELFBuildID(path string, r io.ReaderAt, sum [sha256.Size]byte) error {
+	f, err := elf.NewFile(r)
 	if err != nil {
 		return err
 	}
 	goStart, goEnd, ok := noteDesc(f, elfGoBuildIDSection)
-	if !ok || string(data[goStart:goEnd]) != buildIDPlaceholder {
+	if !ok {
+		return nil
+	}
+	isPlaceholder, err := hasStringAt(r, goStart, goEnd, buildIDPlaceholder)
+	if err != nil {
+		return err
+	}
+	if !isPlaceholder {
 		return nil
 	}
 
@@ -100,15 +120,31 @@ func setELFBuildID(path string, data []byte, sum [sha256.Size]byte) error {
 	return patchFile(path, patches)
 }
 
+// hasStringAt reports whether the file range [start, end) holds exactly want.
+func hasStringAt(r io.ReaderAt, start, end int64, want string) (bool, error) {
+	if end-start != int64(len(want)) {
+		return false, nil
+	}
+	got := make([]byte, len(want))
+	if _, err := io.ReadFull(io.NewSectionReader(r, start, end-start), got); err != nil {
+		return false, err
+	}
+	return string(got) == want, nil
+}
+
 // setMachOBuildID re-signs the binary after patching it, because the code
 // signature covers both the Go build ID and LC_UUID.
-func setMachOBuildID(path string, data []byte, sum [sha256.Size]byte) error {
-	f, err := macho.NewFile(bytes.NewReader(data))
+func setMachOBuildID(path string, r io.ReaderAt, sum [sha256.Size]byte) error {
+	f, err := macho.NewFile(r)
 	if err != nil {
 		return err
 	}
 	if f.Magic != macho.Magic64 {
 		return fmt.Errorf("not 64-bit Mach-O file: %s", path)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
 	}
 	// The Go linker stores the Go build ID in the text segment on Mach-O.
 	i := bytes.Index(data, []byte(goBuildPrefix+buildIDPlaceholder+goBuildEnd))
