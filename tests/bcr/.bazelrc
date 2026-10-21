@@ -1,1 +1,1 @@
-build --@my_rules_go//go/toolchain:sdk_version=1.25.0
+build --@my_rules_go//go/toolchain:sdk_version=1.26.0

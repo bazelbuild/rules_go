@@ -204,6 +204,15 @@ _stdlib_keep_keys = sorted([
     "//go/config:linkmode",
     "//go/config:tags",
     "//go/config:pgoprofile",
+] + [
+    # go_transition records the previous value of each setting it changes.
+    # Keeping those records puts the stdlib in the same configuration as the
+    # packages it is built for. The exception is `tags`, which is filtered
+    # below: keeping its record would build a second, identical stdlib for
+    # binaries that set `gotags`.
+    _SETTING_KEY_TO_ORIGINAL_SETTING_KEY[key]
+    for key in TRANSITIONED_GO_SETTING_KEYS
+    if key != "//go/config:tags"
 ])
 
 def _go_tool_transition_impl(settings, _attr):

@@ -63,6 +63,13 @@ go_binary(
     deps = [":lib"],
 )
 
+go_binary(
+    name = "gotags_attr",
+    srcs = ["main.go"],
+    gotags = ["not_a_stdlib_tag"],
+    deps = [":lib"],
+)
+
 genrule(
     name = "tool_user",
     outs = ["tool_user.txt"],
@@ -366,6 +373,9 @@ func goOptionName(key string) (string, bool) {
 	if _, name, found := strings.Cut(key, "//go/private:"); found {
 		return "private:" + name, true
 	}
+	if _, name, found := strings.Cut(key, "//go/private/rules:"); found {
+		return "private:" + name, true
+	}
 	return "", false
 }
 
@@ -408,6 +418,47 @@ func TestStdlibSharesConfigurationWithExecTools(t *testing.T) {
 		t.Errorf("a stdlib reachable from //:tool_user is not built in the configuration of //:plain, differing in: %s",
 			strings.Join(diffs, "; "))
 	}
+}
+
+// TestStdlibSharesConfigurationWithTransitionedTarget verifies that when a
+// binary's go_transition changes a setting the stdlib depends on, the stdlib is
+// still built in the configuration of the binary's packages. go_transition
+// records the setting's previous value, and a stdlib without that record would
+// be configured separately, along with everything it reaches through an exec
+// edge.
+func TestStdlibSharesConfigurationWithTransitionedTarget(t *testing.T) {
+	libHash := singleConfigHash(t, "deps(//:pure_attr) intersect //:lib",
+		"expected //:pure_attr to depend on //:lib in exactly one configuration, got %d")
+	stdlibHashes := configHashes(t, "deps(//:pure_attr) intersect @io_bazel_rules_go//:stdlib")
+	if contains(stdlibHashes, libHash) {
+		return
+	}
+	var diffs []string
+	for _, hash := range stdlibHashes {
+		diffs = append(diffs, strings.Join(getGoOptions(t, libHash, hash), ", "))
+	}
+	t.Errorf("no stdlib is built in the configuration of //:pure_attr's packages, the stdlib configurations differ from it in: %s",
+		strings.Join(diffs, "; "))
+}
+
+// TestStdlibIgnoresNonStdlibTags verifies that a binary with gotags that don't
+// affect the standard library is built against the same stdlib as a binary
+// without them.
+func TestStdlibIgnoresNonStdlibTags(t *testing.T) {
+	targetHashes := configHashes(t, "config(//:plain, target)")
+	if len(targetHashes) != 1 {
+		t.Fatalf("expected //:plain to be built in exactly one configuration, got %d", len(targetHashes))
+	}
+	stdlibHashes := configHashes(t, "deps(//:gotags_attr) intersect @io_bazel_rules_go//:stdlib")
+	if contains(stdlibHashes, targetHashes[0]) {
+		return
+	}
+	var diffs []string
+	for _, hash := range stdlibHashes {
+		diffs = append(diffs, strings.Join(getGoOptions(t, targetHashes[0], hash), ", "))
+	}
+	t.Errorf("no stdlib of //:gotags_attr is built in the configuration of //:plain, the stdlib configurations differ from it in: %s",
+		strings.Join(diffs, "; "))
 }
 
 // TestNoConfigurationForksByDefault verifies that, with nothing but default
