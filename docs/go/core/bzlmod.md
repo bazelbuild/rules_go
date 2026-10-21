@@ -162,8 +162,8 @@ use_repo(
 )
 ```
 
-When using Bazel 7.1.1 or higher, the [`@rules_go//go` target](#using-a-go-sdk) automatically updates the `use_repo` call whenever the `go.mod` file changes, using `bazel mod tidy`.
-With older versions of Bazel, a warning with a fixup command will be emitted during a build if the `use_repo` call is out of date or missing.
+The [`@rules_go//go` target](#using-a-go-sdk) automatically updates the `use_repo` call whenever the `go.mod` file changes, using `bazel mod tidy`.
+If the `use_repo` call is out of date or missing, a warning with a fixup command will also be emitted during a build.
 
 Alternatively, you can specify a module extension tag to add an individual dependency:
 

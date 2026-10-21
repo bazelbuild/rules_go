@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go_bazel_features//:features.bzl", "bazel_features")
 load("//go/private:go_mod.bzl", "version_from_go_mod", "version_from_go_work")
 load("//go/private:nogo.bzl", "DEFAULT_NOGO", "NOGO_DEFAULT_EXCLUDES", "NOGO_DEFAULT_INCLUDES", "go_register_nogo")
 load("//go/private:sdk.bzl", "detect_host_platform", "fetch_sdks_by_version", "go_download_sdk_rule", "go_host_sdk_rule", "go_multiple_toolchains", "go_wrap_sdk_rule")
@@ -101,20 +100,13 @@ repositories.
     },
 )
 
-# string_keyed_label_dict was added in 8.0.0
-_maybe_string_keyed_label_dict = getattr(
-    attr,
-    "string_keyed_label_dict",
-    attr.string_dict,
-)
-
 _wrap_tag = tag_class(
     attrs = {
         "root_file": attr.label(
             mandatory = False,
             doc = "A file in the SDK root directory. Use to determine GOROOT.",
         ),
-        "root_files": _maybe_string_keyed_label_dict(
+        "root_files": attr.string_keyed_label_dict(
             mandatory = False,
             doc = "A set of mappings from the host platform to a file in the SDK's root directory.",
         ),
@@ -421,17 +413,14 @@ def _go_sdk_impl(ctx):
         sdk_versions = [toolchain.sdk_version for toolchain in toolchains],
     )
 
-    if bazel_features.external_deps.extension_metadata_has_reproducible:
-        kwargs = {
-            "reproducible": True,
-        }
+    kwargs = {
+        "reproducible": True,
+    }
 
-        # See get_sdks_by_version_cached above for details on these facts.
-        if hasattr(ctx, "facts"):
-            kwargs["facts"] = used_sdks_by_version
-        return ctx.extension_metadata(**kwargs)
-    else:
-        return None
+    # See get_sdks_by_version_cached above for details on these facts.
+    if hasattr(ctx, "facts"):
+        kwargs["facts"] = used_sdks_by_version
+    return ctx.extension_metadata(**kwargs)
 
 def _check_nogo_scope(scope, nogo_tag):
     # Validate that the scope references a valid, visible repository.
@@ -495,13 +484,6 @@ def _download_sdk(*, get_sdks_by_version, name, goos, goarch, download_tag):
         experimental_build_compiler_from_source = download_tag.experimental_build_compiler_from_source,
     )
 
-go_sdk_extra_kwargs = {
-    # The choice of a host-compatible SDK is expressed in repository rule attribute values and
-    # depends on host OS and architecture.
-    "os_dependent": True,
-    "arch_dependent": True,
-} if bazel_features.external_deps.module_extension_has_os_arch_dependent else {}
-
 go_sdk = module_extension(
     implementation = _go_sdk_impl,
     tag_classes = {
@@ -511,5 +493,8 @@ go_sdk = module_extension(
         "wrap": _wrap_tag,
         "from_file": _from_file_tag,
     },
-    **go_sdk_extra_kwargs
+    # The choice of a host-compatible SDK is expressed in repository rule attribute values and
+    # depends on host OS and architecture.
+    os_dependent = True,
+    arch_dependent = True,
 )

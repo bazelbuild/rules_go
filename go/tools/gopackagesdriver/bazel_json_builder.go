@@ -170,11 +170,8 @@ func (b *BazelJSONBuilder) outputGroupsForMode(mode packages.LoadMode) string {
 }
 
 func (b *BazelJSONBuilder) query(ctx context.Context, query string) ([]string, error) {
-	var bzlmodQueryFlags []string
-	if b.bazel.version.isAtLeast(bazelVersion{6, 4, 0}) {
-		bzlmodQueryFlags = []string{"--consistent_labels"}
-	}
-	queryArgs := concatStringsArrays(bazelQueryFlags, bzlmodQueryFlags, []string{
+	queryArgs := concatStringsArrays(bazelQueryFlags, []string{
+		"--consistent_labels",
 		"--ui_event_filters=-info,-stderr",
 		"--noshow_progress",
 		"--order_output=no",

@@ -37,9 +37,6 @@ PROTO_COMPILER_ATTRS = [
     "library",
 ]
 
-def bazel_supports_canonical_label_literals():
-    return str(Label("//:bogus")).startswith("@@")
-
 def is_file_external(f):
     return is_file_external_lib(f)
 

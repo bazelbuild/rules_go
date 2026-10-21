@@ -13,39 +13,22 @@ matrix:
     - 9.*
 
 tasks:
-  debian11_bazel6:
+  debian11_bazel7:
     platform: debian11
-    bazel: 7.2.1 # test minimum supported version of bazel that works with our bzlmod setup
+    bazel: 7.7.0 # minimum supported version of Bazel
     build_targets:
       - "//..."
       # Stardoc's output depends on the Bazel version, so the checked-in docs
       # can only match one. See the dedicated docs task below.
       - "-//docs:all"
-      - "-//tests/core/go_binary:goos_pure_bin"
-      - "-//tests/core/cross:go_cross_binary_test"
     build_flags:
       - "--per_file_copt=external/.*@-w"
       - "--host_per_file_copt=external/.*@-w"
     test_targets:
       - "//..."
       - "-//docs:all"
-      # Nogo includes/excludes doesn't work before bazel 7
-      - "-//tests/core/nogo/includes_excludes:includes_exclude_test"
-      - "-//tests/core/nogo/bzlmod:includes_exclude_test"
-      # _repo_mapping is missing
-      - "-//tests/runfiles:runfiles_test"
       # TODO: Investigate why this fails.
       - "-//tests/core/starlark/cgo:missing_cc_toolchain_explicit_pure_off_test"
-      # TODO: Bzlmod setup requires at least Bazel 7.
-      - "-//tests/core/cross:proto_test"
-      - "-//tests/core/from_go_mod_file:from_go_mod_file_test"
-      - "-//tests/core/from_go_work_file:from_go_work_file_test"
-      - "-//tests/core/transition:hermeticity_test"
-      - "-//tests/integration/gazelle:gazelle_test"
-      # Requires https://github.com/bazelbuild/bazel/commit/ceddfb1ece1f8ed7ff81558fa1751e6526df031b.
-      - "-//tests/core/go_binary:configurable_attribute_good_test"
-      - "-//tests/core/go_binary:goos_pure_bin"
-      - "-//tests/core/cross:go_cross_binary_test"
     test_flags:
       - "--per_file_copt=external/.*@-w"
       - "--host_per_file_copt=external/.*@-w"
@@ -226,7 +209,7 @@ tasks:
       # which the tests use to locate their test logs, doesn't apply the main
       # repository mapping to labels on the command line. Fixtures that build
       # protobuf from source need C++17.
-      - "--test_env=GO_BAZEL_TEST_BAZELFLAGS=--cpu=x64_windows --compiler=mingw-gcc --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --action_env=PATH --host_platform=@@rules_go+//go/toolchain:windows_amd64_cgo --incompatible_enable_cc_toolchain_resolution --cxxopt=-std=c++17 --host_cxxopt=-std=c++17"
+      - "--test_env=GO_BAZEL_TEST_BAZELFLAGS=--cpu=x64_windows --compiler=mingw-gcc --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --action_env=PATH --host_platform=@@rules_go+//go/toolchain:windows_amd64_cgo --cxxopt=-std=c++17 --host_cxxopt=-std=c++17"
       - "--test_env=PATH"
     test_targets:
       - "//..."
@@ -324,7 +307,7 @@ tasks:
       # which the tests use to locate their test logs, doesn't apply the main
       # repository mapping to labels on the command line. Fixtures that build
       # protobuf from source need C++17.
-      - "--test_env=GO_BAZEL_TEST_BAZELFLAGS=--cpu=x64_windows --compiler=mingw-gcc --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --action_env=PATH --host_platform=@@rules_go+//go/toolchain:windows_amd64_cgo --incompatible_enable_cc_toolchain_resolution --cxxopt=-std=c++17 --host_cxxopt=-std=c++17"
+      - "--test_env=GO_BAZEL_TEST_BAZELFLAGS=--cpu=x64_windows --compiler=mingw-gcc --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --action_env=PATH --host_platform=@@rules_go+//go/toolchain:windows_amd64_cgo --cxxopt=-std=c++17 --host_cxxopt=-std=c++17"
       - "--test_env=PATH"
   ubuntu_basic_gazelle_example:
     name: Basic Gazelle example on Ubuntu
@@ -366,5 +349,5 @@ tasks:
       # which the tests use to locate their test logs, doesn't apply the main
       # repository mapping to labels on the command line. Fixtures that build
       # protobuf from source need C++17.
-      - "--test_env=GO_BAZEL_TEST_BAZELFLAGS=--cpu=x64_windows --compiler=mingw-gcc --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --action_env=PATH --host_platform=@@rules_go+//go/toolchain:windows_amd64_cgo --incompatible_enable_cc_toolchain_resolution --cxxopt=-std=c++17 --host_cxxopt=-std=c++17"
+      - "--test_env=GO_BAZEL_TEST_BAZELFLAGS=--cpu=x64_windows --compiler=mingw-gcc --extra_toolchains=@local_config_cc//:cc-toolchain-x64_windows_mingw --action_env=PATH --host_platform=@@rules_go+//go/toolchain:windows_amd64_cgo --cxxopt=-std=c++17 --host_cxxopt=-std=c++17"
       - "--test_env=PATH"

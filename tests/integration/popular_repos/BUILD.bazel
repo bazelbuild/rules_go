@@ -226,7 +226,6 @@ test_suite(
 test_suite(
     name = "com_github_golang_glog",
     tests = [
-        "@com_github_golang_glog//:glog_test",
         "@com_github_golang_glog//internal/logsink:logsink_test",
     ],
 )
@@ -360,6 +359,7 @@ build_test(
         "@org_golang_x_tools//refactor/eg:eg",
         "@org_golang_x_tools//refactor/importgraph:importgraph",
         "@org_golang_x_tools//refactor/rename:rename",
+        "@com_github_golang_glog//:glog",
         "@org_golang_x_mod//sumdb/tlog:tlog",
         "@org_golang_x_mod//zip:zip",
     ],
