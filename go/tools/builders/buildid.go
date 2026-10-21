@@ -75,22 +75,27 @@ func setContentBuildID(path string) error {
 		return err
 	}
 	defer f.Close()
+	fi, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	r := io.NewSectionReader(f, 0, fi.Size())
 
 	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
+	if _, err := io.Copy(h, r); err != nil {
 		return err
 	}
 	var sum [sha256.Size]byte
 	h.Sum(sum[:0])
 
 	var magic [len(elf.ELFMAG)]byte
-	if _, err := f.ReadAt(magic[:], 0); err != nil {
+	if _, err := r.ReadAt(magic[:], 0); err != nil {
 		return err
 	}
 	if string(magic[:]) == elf.ELFMAG {
-		return setELFBuildID(path, f, sum)
+		return setELFBuildID(path, r, sum)
 	}
-	return setMachOBuildID(path, f, sum)
+	return setMachOBuildID(path, r, sum)
 }
 
 func setELFBuildID(path string, r io.ReaderAt, sum [sha256.Size]byte) error {
@@ -134,7 +139,7 @@ func hasStringAt(r io.ReaderAt, start, end int64, want string) (bool, error) {
 
 // setMachOBuildID re-signs the binary after patching it, because the code
 // signature covers both the Go build ID and LC_UUID.
-func setMachOBuildID(path string, r io.ReaderAt, sum [sha256.Size]byte) error {
+func setMachOBuildID(path string, r *io.SectionReader, sum [sha256.Size]byte) error {
 	f, err := macho.NewFile(r)
 	if err != nil {
 		return err
@@ -142,17 +147,16 @@ func setMachOBuildID(path string, r io.ReaderAt, sum [sha256.Size]byte) error {
 	if f.Magic != macho.Magic64 {
 		return fmt.Errorf("not 64-bit Mach-O file: %s", path)
 	}
-	data, err := os.ReadFile(path)
+	// The Go linker stores the Go build ID in the text segment on Mach-O.
+	i, err := indexReader(io.NewSectionReader(r, 0, r.Size()), []byte(goBuildPrefix+buildIDPlaceholder+goBuildEnd))
 	if err != nil {
 		return err
 	}
-	// The Go linker stores the Go build ID in the text segment on Mach-O.
-	i := bytes.Index(data, []byte(goBuildPrefix+buildIDPlaceholder+goBuildEnd))
 	if i < 0 {
 		return nil
 	}
 
-	patches := map[int64][]byte{int64(i + len(goBuildPrefix)): []byte(goBuildID(sum))}
+	patches := map[int64][]byte{i + int64(len(goBuildPrefix)): []byte(goBuildID(sum))}
 	if off, ok := machoUUIDOffset(f); ok {
 		uuid := make([]byte, 16)
 		copy(uuid, sum[:])
@@ -165,6 +169,36 @@ func setMachOBuildID(path string, r io.ReaderAt, sum [sha256.Size]byte) error {
 		return err
 	}
 	return machoCodeSign(path)
+}
+
+// indexReaderBufSize is the number of bytes indexReader reads at a time.
+const indexReaderBufSize = 1 << 20
+
+// indexReader returns the offset of the first occurrence of pattern in r, or -1.
+func indexReader(r io.Reader, pattern []byte) (int64, error) {
+	// A match can straddle two reads, so the last len(pattern)-1 bytes are kept.
+	keep := len(pattern) - 1
+	buf := make([]byte, indexReaderBufSize+keep)
+	var base int64 // file offset of buf[0]
+	n := 0
+	for {
+		m, err := r.Read(buf[n:])
+		n += m
+		if i := bytes.Index(buf[:n], pattern); i >= 0 {
+			return base + int64(i), nil
+		}
+		if err == io.EOF {
+			return -1, nil
+		}
+		if err != nil {
+			return -1, err
+		}
+		if n > keep {
+			copy(buf, buf[n-keep:n])
+			base += int64(n - keep)
+			n = keep
+		}
+	}
 }
 
 // patchFile overwrites the file at path with each patch at its offset.
