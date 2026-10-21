@@ -102,16 +102,6 @@ go_test(
 )
 
 go_test(
-    name = "buildid_test",
-    size = "small",
-    srcs = [
-        "buildid.go",
-        "buildid_test.go",
-        "codesign.go",
-    ],
-)
-
-go_test(
     name = "buildinfo_test",
     size = "small",
     srcs = [
